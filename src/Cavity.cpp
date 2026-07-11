@@ -9,7 +9,6 @@
 
 
 
-
 //==================================================
 // Constructor
 //==================================================
@@ -24,49 +23,12 @@ ny(ny_),
 Re(Reynolds_),
 U_lid(lidVelocity_),
 
-
-/*
-    For a square cavity:
-
-        Re = U L / nu
-
-    with:
-
-        L = 1
-
-    therefore:
-
-        nu = U/Re
-*/
-
 viscosity(U_lid / Re),
-
-
-
-/*
-    LBM relation:
-
-        nu = cs^2 (tau - 1/2)
-
-    with:
-
-        cs^2 = 1/3
-
-*/
 
 omega_p(
     1.0 /
     (0.5 + 3.0*viscosity)
 ),
-
-
-
-/*
-    TRT parameter
-
-        (tau_p-0.5)(tau_m-0.5)=lambda
-
-*/
 
 omega_m(
     1.0 /
@@ -80,15 +42,11 @@ omega_m(
     )
 ),
 
-
-
 lattice(nx,
         ny,
         omega_p,
         omega_m,
         1.0),
-
-
 
 boundary(nx,
          ny,
@@ -96,16 +54,11 @@ boundary(nx,
 
 {
 
-
     oldUx.resize(nx*ny,0.0);
 
     oldUy.resize(nx*ny,0.0);
 
-
 }
-
-
-
 
 
 
@@ -118,13 +71,11 @@ void Cavity::initialize()
 
     lattice.initialize();
 
-    // Apply initial boundary conditions
-    boundary.apply(lattice);
-
 
     std::fill(oldUx.begin(),
               oldUx.end(),
               0.0);
+
 
     std::fill(oldUy.begin(),
               oldUy.end(),
@@ -140,15 +91,51 @@ void Cavity::initialize()
 
 void Cavity::step()
 {
+
+    /*
+        LBM cycle:
+
+        1) macroscopic fields
+        2) equilibrium
+        3) collision
+        4) streaming
+        5) boundary conditions
+        6) update macroscopic fields
+
+    */
+
+
     lattice.computeMacroscopic();
+
+
     lattice.computeEquilibrium();
+
+
     lattice.collision();
+
+
     lattice.streaming();
+
+
     boundary.apply(lattice);
-    // aggiorna campi macroscopici dopo BC
+
+
+
+    /*
+        Important:
+
+        Boundary conditions modify
+        distribution functions.
+
+        Therefore rho,u must be
+        updated afterwards.
+    */
+
     lattice.computeMacroscopic();
 
 }
+
+
 
 //==================================================
 // Apply boundary only
@@ -160,9 +147,6 @@ void Cavity::applyBoundary()
     boundary.apply(lattice);
 
 }
-
-
-
 
 
 
@@ -179,9 +163,6 @@ Lattice& Cavity::getLattice()
 
 
 
-
-
-
 //==================================================
 // Velocity difference
 //==================================================
@@ -192,8 +173,11 @@ double Cavity::velocityDifference()
     double error = 0.0;
 
 
+    bool invalid = false;
 
-    #pragma omp parallel for reduction(max:error)
+
+
+    #pragma omp parallel for collapse(2) reduction(max:error)
     for(int x=0;x<nx;x++)
     {
         for(int y=0;y<ny;y++)
@@ -213,6 +197,19 @@ double Cavity::velocityDifference()
 
 
 
+            /*
+                Detect numerical divergence
+            */
+
+            if(!std::isfinite(ux) ||
+               !std::isfinite(uy))
+            {
+                invalid = true;
+                continue;
+            }
+
+
+
             double dux =
                 std::abs(
                     ux-oldUx[id]
@@ -227,8 +224,10 @@ double Cavity::velocityDifference()
 
 
             error =
-                std::max(error,
-                         std::max(dux,duy));
+                std::max(
+                    error,
+                    std::max(dux,duy)
+                );
 
 
 
@@ -240,12 +239,15 @@ double Cavity::velocityDifference()
     }
 
 
+
+    if(invalid)
+        return 1e30;
+
+
+
     return error;
 
 }
-
-
-
 
 
 
@@ -255,12 +257,9 @@ double Cavity::velocityDifference()
 
 bool Cavity::converged(double tolerance)
 {
-    double error = velocityDifference();
 
-    if(!std::isfinite(error))
-    {
-        return false;
-    }
+    return velocityDifference()
+           <
+           tolerance;
 
-    return error < tolerance;
 }
