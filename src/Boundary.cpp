@@ -150,6 +150,10 @@ void Boundary::bounceBackRight(Lattice& lattice)
 // Moving top lid - Zou He velocity boundary
 //==================================================
 
+//==================================================
+// Moving lid - Zou-He velocity boundary
+//==================================================
+
 void Boundary::movingTop(Lattice& lattice)
 {
 
@@ -157,72 +161,75 @@ void Boundary::movingTop(Lattice& lattice)
 
 
     #pragma omp parallel for
-    for(int x=1;x<nx-1;x++)
+    for(int x = 1; x < nx-1; ++x)
     {
 
-        int y = ny-1;
+        int y = ny - 1;
+
+
+        /*
+            Top wall moving in +x direction.
+
+            Unknown populations after streaming:
+
+                q=3  north
+                q=5  north-east
+                q=7  north-west
+
+            Reconstruction by Zou-He.
+        */
 
 
         double rho =
               f[lattice.index(0,x,y)]
             + f[lattice.index(1,x,y)]
             + f[lattice.index(2,x,y)]
-            + 2.0*
-            (
-              f[lattice.index(4,x,y)]
-            + f[lattice.index(7,x,y)]
-            + f[lattice.index(8,x,y)]
-            );
-
-
-        double U = lidVelocity;
+            + 2.0 *
+              (
+                  f[lattice.index(4,x,y)]
+                + f[lattice.index(6,x,y)]
+                + f[lattice.index(8,x,y)]
+              );
 
 
 
-        /*
-            Zou-He moving lid
+        //--------------------------------------
+        // Normal component
+        //--------------------------------------
 
-            Unknown populations:
-            3,5,6
-
-        */
-
-
-        f[lattice.index(3,x,y)]
-        =
-        f[lattice.index(4,x,y)]
-        +
-        (2.0/3.0)*rho*0.0;
+        f[lattice.index(3,x,y)] =
+            f[lattice.index(4,x,y)];
 
 
 
-        f[lattice.index(5,x,y)]
-        =
-        f[lattice.index(7,x,y)]
-        +
-        0.5*
-        (
-            f[lattice.index(2,x,y)]
-          -
-            f[lattice.index(1,x,y)]
-        )
-        +
-        (rho*U)/6.0;
+        //--------------------------------------
+        // North-East population
+        //--------------------------------------
+
+        f[lattice.index(5,x,y)] =
+              f[lattice.index(7,x,y)]
+            - 0.5 *
+              (
+                  f[lattice.index(2,x,y)]
+                - f[lattice.index(1,x,y)]
+              )
+            + rho * lidVelocity / 6.0;
 
 
 
-        f[lattice.index(6,x,y)]
-        =
-        f[lattice.index(8,x,y)]
-        -
-        0.5*
-        (
-            f[lattice.index(2,x,y)]
-          -
-            f[lattice.index(1,x,y)]
-        )
-        -
-        (rho*U)/6.0;
+        //--------------------------------------
+        // North-West population
+        //--------------------------------------
+
+        f[lattice.index(7,x,y)] =
+              f[lattice.index(5,x,y)]
+            + 0.5 *
+              (
+                  f[lattice.index(2,x,y)]
+                - f[lattice.index(1,x,y)]
+              )
+            - rho * lidVelocity / 6.0;
+
 
     }
 
