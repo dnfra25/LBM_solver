@@ -267,9 +267,12 @@ double Cavity::velocityDifference()
 
 bool Cavity::converged(double tolerance)
 {
+    double error = velocityDifference();
 
-    return velocityDifference()
-           <
-           tolerance;
+    if(!std::isfinite(error))
+    {
+        return false;
+    }
 
+    return error < tolerance;
 }
