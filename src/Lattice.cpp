@@ -265,6 +265,10 @@ void Lattice::computeEquilibrium()
 // TRT collision
 //==================================================
 
+//==================================================
+// TRT collision step
+//==================================================
+
 void Lattice::collision()
 {
 
@@ -295,41 +299,33 @@ void Lattice::collision()
 
 
 
-                /*
-                    Even and odd components
-
-                    f+  = (fq + fqb)/2
-                    f-  = (fq - fqb)/2
-
-                    feq+ = (feq + feqb)/2
-                    feq- = (feq - feqb)/2
-                */
-
+                //----------------------------------
+                // Symmetric and antisymmetric parts
+                //----------------------------------
 
                 double f_plus =
-                    0.5*(fq + fqb);
+                    0.5 * (fq + fqb);
 
 
                 double f_minus =
-                    0.5*(fq - fqb);
+                    0.5 * (fq - fqb);
 
 
 
                 double feq_plus =
-                    0.5*(feq + feqb);
+                    0.5 * (feq + feqb);
 
 
                 double feq_minus =
-                    0.5*(feq - feqb);
+                    0.5 * (feq - feqb);
 
 
 
-                /*
-                    TRT relaxation
-                */
+                //----------------------------------
+                // TRT relaxation
+                //----------------------------------
 
-
-                double f_plus_new =
+                double f_plus_post =
                     f_plus
                     -
                     omega_p *
@@ -337,7 +333,7 @@ void Lattice::collision()
 
 
 
-                double f_minus_new =
+                double f_minus_post =
                     f_minus
                     -
                     omega_m *
@@ -345,15 +341,14 @@ void Lattice::collision()
 
 
 
-                /*
-                    Reconstruct population q
-                */
-
+                //----------------------------------
+                // Reconstruct population q
+                //----------------------------------
 
                 f_post[index(q,x,y)] =
-                    f_plus_new
+                    f_plus_post
                     +
-                    f_minus_new;
+                    f_minus_post;
 
             }
 
