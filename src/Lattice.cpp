@@ -367,9 +367,13 @@ void Lattice::collision()
 //==================================================
 // Streaming - pull scheme
 //==================================================
-
 void Lattice::streaming()
 {
+
+    std::vector<double> temp(
+        Q*nx*ny,
+        0.0
+    );
 
 
     #pragma omp parallel for collapse(2)
@@ -378,55 +382,51 @@ void Lattice::streaming()
         for(int y=0;y<ny;y++)
         {
 
-
             for(int q=0;q<Q;q++)
             {
 
-
-                int xs =
-                    x-c[q][0];
-
-
-                int ys =
-                    y-c[q][1];
+                int xn =
+                    x + c[q][0];
 
 
+                int yn =
+                    y + c[q][1];
 
-                if(xs>=0 && xs<nx &&
-                   ys>=0 && ys<ny)
+
+
+                if(xn>=0 &&
+                   xn<nx &&
+                   yn>=0 &&
+                   yn<ny)
                 {
 
-                    f[index(q,x,y)]
+                    temp[index(q,xn,yn)]
                     =
-                    f_post[index(q,xs,ys)];
+                    f_post[index(q,x,y)];
 
                 }
                 else
                 {
 
                     /*
-                     Boundary populations
-                     are corrected by Boundary::apply()
+                       populations hitting walls
+                       are handled by Boundary
                     */
 
-
-                    f[index(q,x,y)]
+                    temp[index(q,x,y)]
                     =
                     f_post[index(q,x,y)];
 
                 }
-
 
             }
 
         }
     }
 
+    f.swap(temp);
 
 }
-
-
-
 
 
 //==================================================
