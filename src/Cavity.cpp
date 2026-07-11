@@ -118,20 +118,19 @@ void Cavity::initialize()
 
     lattice.initialize();
 
+    // Apply initial boundary conditions
+    boundary.apply(lattice);
+
 
     std::fill(oldUx.begin(),
               oldUx.end(),
               0.0);
-
 
     std::fill(oldUy.begin(),
               oldUy.end(),
               0.0);
 
 }
-
-
-
 
 
 
