@@ -140,27 +140,15 @@ void Cavity::initialize()
 
 void Cavity::step()
 {
-
+    lattice.computeMacroscopic();
+    lattice.computeEquilibrium();
+    lattice.collision();
+    lattice.streaming();
+    boundary.apply(lattice);
+    // aggiorna campi macroscopici dopo BC
     lattice.computeMacroscopic();
 
-
-    lattice.computeEquilibrium();
-
-
-    lattice.collision();
-
-
-    lattice.streaming();
-
-
-    boundary.apply(lattice);
-
 }
-
-
-
-
-
 
 //==================================================
 // Apply boundary only
