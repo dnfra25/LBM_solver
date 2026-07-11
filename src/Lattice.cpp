@@ -370,52 +370,44 @@ void Lattice::collision()
 void Lattice::streaming()
 {
 
-    std::vector<double> temp(
-        Q*nx*ny,
+    /*
+        Pull/Push streaming con doppio buffer:
+
+        f_post(x,y,q)  -->  f(x+c_q,y+c_q)
+
+        Prima si azzera il nuovo campo.
+        Poi si trasferiscono tutte le popolazioni valide.
+    */
+
+
+    std::fill(
+        f.begin(),
+        f.end(),
         0.0
     );
 
 
     #pragma omp parallel for collapse(2)
-    for(int x=0;x<nx;x++)
+    for(int x = 0; x < nx; ++x)
     {
-        for(int y=0;y<ny;y++)
+        for(int y = 0; y < ny; ++y)
         {
 
-            for(int q=0;q<Q;q++)
+            for(int q = 0; q < Q; ++q)
             {
 
-                int xn =
-                    x + c[q][0];
+                int xn = x + c[q][0];
+                int yn = y + c[q][1];
 
 
-                int yn =
-                    y + c[q][1];
-
-
-
-                if(xn>=0 &&
-                   xn<nx &&
-                   yn>=0 &&
-                   yn<ny)
+                if(xn >= 0 &&
+                   xn < nx &&
+                   yn >= 0 &&
+                   yn < ny)
                 {
 
-                    temp[index(q,xn,yn)]
-                    =
-                    f_post[index(q,x,y)];
-
-                }
-                else
-                {
-
-                    /*
-                       populations hitting walls
-                       are handled by Boundary
-                    */
-
-                    temp[index(q,x,y)]
-                    =
-                    f_post[index(q,x,y)];
+                    f[index(q,xn,yn)] =
+                        f_post[index(q,x,y)];
 
                 }
 
@@ -423,8 +415,6 @@ void Lattice::streaming()
 
         }
     }
-
-    f.swap(temp);
 
 }
 
