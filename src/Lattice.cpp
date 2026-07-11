@@ -268,63 +268,92 @@ void Lattice::computeEquilibrium()
 void Lattice::collision()
 {
 
-
     #pragma omp parallel for collapse(2)
-    for(int x=0;x<nx;x++)
+    for(int x = 0; x < nx; ++x)
     {
-        for(int y=0;y<ny;y++)
+        for(int y = 0; y < ny; ++y)
         {
 
-            for(int q=0;q<Q;q++)
+            for(int q = 0; q < Q; ++q)
             {
 
-
-                int qb =
-                    opposite[q];
-
+                int qb = opposite[q];
 
 
                 double fq =
                     f[index(q,x,y)];
 
-
                 double fqb =
                     f[index(qb,x,y)];
 
 
-
                 double feq =
                     f_eq[index(q,x,y)];
-
 
                 double feqb =
                     f_eq[index(qb,x,y)];
 
 
 
-                double sum =
-                    omega_p + omega_m;
+                /*
+                    Even and odd components
+
+                    f+  = (fq + fqb)/2
+                    f-  = (fq - fqb)/2
+
+                    feq+ = (feq + feqb)/2
+                    feq- = (feq - feqb)/2
+                */
 
 
-                double diff =
-                    omega_p - omega_m;
+                double f_plus =
+                    0.5*(fq + fqb);
 
+
+                double f_minus =
+                    0.5*(fq - fqb);
+
+
+
+                double feq_plus =
+                    0.5*(feq + feqb);
+
+
+                double feq_minus =
+                    0.5*(feq - feqb);
+
+
+
+                /*
+                    TRT relaxation
+                */
+
+
+                double f_plus_new =
+                    f_plus
+                    -
+                    omega_p *
+                    (f_plus - feq_plus);
+
+
+
+                double f_minus_new =
+                    f_minus
+                    -
+                    omega_m *
+                    (f_minus - feq_minus);
+
+
+
+                /*
+                    Reconstruct population q
+                */
 
 
                 f_post[index(q,x,y)] =
-
-                    (1.0-0.5*sum)*fq
-
-                    -
-                    0.5*diff*fqb
-
+                    f_plus_new
                     +
-
-                    0.5*sum*feq
-
-                    +
-
-                    0.5*diff*feqb;
+                    f_minus_new;
 
             }
 
