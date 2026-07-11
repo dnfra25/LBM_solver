@@ -1,6 +1,11 @@
 #include "Boundary.hpp"
 
+#include <algorithm>
+
+#ifdef _OPENMP
 #include <omp.h>
+#endif
+
 
 
 //==================================================
@@ -17,8 +22,6 @@ lidVelocity(lidVelocity_)
 {
 
 }
-
-
 
 
 
@@ -41,10 +44,6 @@ void Boundary::apply(Lattice& lattice)
 
 
 
-
-
-
-
 //==================================================
 // Bottom wall - no slip bounce back
 //==================================================
@@ -62,27 +61,20 @@ void Boundary::bounceBackBottom(Lattice& lattice)
         int y=0;
 
 
-        // q3 <-> q4
         f[lattice.index(3,x,y)] =
             f[lattice.index(4,x,y)];
 
 
-        // q5 <-> q7
         f[lattice.index(5,x,y)] =
             f[lattice.index(7,x,y)];
 
 
-        // q8 <-> q6
         f[lattice.index(8,x,y)] =
             f[lattice.index(6,x,y)];
 
     }
 
 }
-
-
-
-
 
 
 
@@ -120,10 +112,6 @@ void Boundary::bounceBackLeft(Lattice& lattice)
 
 
 
-
-
-
-
 //==================================================
 // Right wall - no slip bounce back
 //==================================================
@@ -158,14 +146,8 @@ void Boundary::bounceBackRight(Lattice& lattice)
 
 
 
-
-
-
-
-
-
 //==================================================
-// Moving lid - Zou-He velocity boundary
+// Moving top lid - Zou He velocity boundary
 //==================================================
 
 void Boundary::movingTop(Lattice& lattice)
@@ -174,24 +156,32 @@ void Boundary::movingTop(Lattice& lattice)
     auto& f = lattice.distributions();
 
 
-
     #pragma omp parallel for
     for(int x=1;x<nx-1;x++)
     {
 
-        int y=ny-1;
+        int y = ny-1;
 
 
 
         /*
-            Missing populations:
+            Known populations:
+            
+            q=0
+            q=1
+            q=2
+            q=4
+            q=6
+            q=8
 
-              q4 = (0,-1)
-              q6 = (-1,-1)
-              q8 = (1,-1)
+
+            Unknown populations:
+
+            q=3
+            q=5
+            q=7
 
         */
-
 
 
         double rho =
@@ -199,70 +189,82 @@ void Boundary::movingTop(Lattice& lattice)
             + f[lattice.index(1,x,y)]
             + f[lattice.index(2,x,y)]
             + 2.0 *
-              (
-                  f[lattice.index(3,x,y)]
-                + f[lattice.index(5,x,y)]
-                + f[lattice.index(7,x,y)]
-              );
-
-
-
-
-        //----------------------------------
-        // normal direction
-        //----------------------------------
-
-        f[lattice.index(4,x,y)]
-            =
-            f[lattice.index(3,x,y)];
-
-
-
-
-        //----------------------------------
-        // diagonal populations
-        //----------------------------------
-
-        double correction =
-            0.5 *
             (
-                f[lattice.index(1,x,y)]
-              -
-                f[lattice.index(2,x,y)]
+                f[lattice.index(4,x,y)]
+              + f[lattice.index(6,x,y)]
+              + f[lattice.index(8,x,y)]
             );
 
 
 
-        // q8 = (1,-1)
+        if(rho < 1e-12)
+            rho = 1.0;
 
-        f[lattice.index(8,x,y)]
-            =
+
+
+        double ux = lidVelocity;
+
+
+
+        double uy = 0.0;
+
+
+
+        /*
+            Zou-He reconstruction
+        */
+
+
+        // q=3 north
+
+        f[lattice.index(3,x,y)] =
+            f[lattice.index(4,x,y)]
+            +
+            (2.0/3.0)
+            *
+            rho
+            *
+            uy;
+
+
+
+        // q=5 north-east
+
+        f[lattice.index(5,x,y)] =
             f[lattice.index(7,x,y)]
             +
-            correction
+            0.5 *
+            (
+                f[lattice.index(2,x,y)]
+              -
+                f[lattice.index(1,x,y)]
+            )
             +
             (1.0/6.0)
             *
             rho
             *
-            lidVelocity;
+            ux;
 
 
 
-        // q6 = (-1,-1)
+        // q=7 north-west
 
-        f[lattice.index(6,x,y)]
-            =
+        f[lattice.index(7,x,y)] =
             f[lattice.index(5,x,y)]
             -
-            correction
+            0.5 *
+            (
+                f[lattice.index(2,x,y)]
+              -
+                f[lattice.index(1,x,y)]
+            )
             -
             (1.0/6.0)
             *
             rho
             *
-            lidVelocity;
-
+            ux;
 
     }
 
