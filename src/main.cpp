@@ -170,7 +170,7 @@ int main()
 
 
 
-            if(iteration % 50 == 0)
+            if(iteration % 50 == 0 && iteration > 0)
             {
 
 
