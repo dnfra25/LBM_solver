@@ -4,13 +4,19 @@
 #include <array>
 #include <vector>
 
+class Boundary;
+
 class Lattice
 {
+    friend class Boundary;
+
 public:
 
-    // ============================
+    static constexpr int Q = 9;
+
+    //=========================================
     // Constructor
-    // ============================
+    //=========================================
 
     Lattice(int nx,
             int ny,
@@ -18,15 +24,15 @@ public:
             double omega_m,
             double rho0 = 1.0);
 
-    // ============================
+    //=========================================
     // Initialization
-    // ============================
+    //=========================================
 
     void initialize();
 
-    // ============================
-    // LBM algorithm
-    // ============================
+    //=========================================
+    // LBM steps
+    //=========================================
 
     void computeMacroscopic();
 
@@ -36,13 +42,19 @@ public:
 
     void streaming();
 
-    // ============================
+    //=========================================
     // Getters
-    // ============================
+    //=========================================
 
-    int getNx() const { return nx; }
+    int getNx() const
+    {
+        return nx;
+    }
 
-    int getNy() const { return ny; }
+    int getNy() const
+    {
+        return ny;
+    }
 
     double getRho(int x,int y) const;
 
@@ -50,43 +62,23 @@ public:
 
     double getUy(int x,int y) const;
 
-    // ============================
-    // Access to distributions
-    // (needed by Boundary.cpp)
-    // ============================
+    //=========================================
+    // Distribution access
+    //=========================================
 
     std::vector<double>& distributions()
     {
         return f;
     }
 
-    std::vector<double>& postCollision()
+    const std::vector<double>& distributions() const
     {
-        return f_post;
+        return f;
     }
 
-    // ============================
-    // D2Q9 information
-    // ============================
-
-    const std::array<std::array<int,2>,9>& velocities() const
-    {
-        return c;
-    }
-
-    const std::array<int,9>& oppositeDirections() const
-    {
-        return opposite;
-    }
-
-    const std::array<double,9>& weights() const
-    {
-        return w;
-    }
-
-    // ============================
-    // Index utilities
-    // ============================
+    //=========================================
+    // Indexing
+    //=========================================
 
     inline int index(int q,int x,int y) const
     {
@@ -100,37 +92,35 @@ public:
 
 private:
 
-    // ============================
+    //-----------------------------------------
     // Grid
-    // ============================
+    //-----------------------------------------
 
     int nx;
     int ny;
 
-    static constexpr int Q = 9;
-
-    // ============================
+    //-----------------------------------------
     // TRT parameters
-    // ============================
+    //-----------------------------------------
 
     double omega_p;
     double omega_m;
 
     double rho0;
 
-    // ============================
+    //-----------------------------------------
     // D2Q9
-    // ============================
+    //-----------------------------------------
 
-    std::array<std::array<int,2>,9> c;
+    std::array<std::array<int,2>,Q> c;
 
-    std::array<double,9> w;
+    std::array<double,Q> w;
 
-    std::array<int,9> opposite;
+    std::array<int,Q> opposite;
 
-    // ============================
+    //-----------------------------------------
     // Distribution functions
-    // ============================
+    //-----------------------------------------
 
     std::vector<double> f;
 
@@ -138,16 +128,15 @@ private:
 
     std::vector<double> f_post;
 
-    // ============================
-    // Macroscopic variables
-    // ============================
+    //-----------------------------------------
+    // Macroscopic fields
+    //-----------------------------------------
 
     std::vector<double> rho;
 
     std::vector<double> ux;
 
     std::vector<double> uy;
-
 };
 
 #endif
