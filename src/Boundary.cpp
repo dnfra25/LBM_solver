@@ -3,7 +3,6 @@
 #include <omp.h>
 
 
-
 //==================================================
 // Constructor
 //==================================================
@@ -45,6 +44,7 @@ void Boundary::apply(Lattice& lattice)
 
 
 
+
 //==================================================
 // Bottom wall - no slip bounce back
 //==================================================
@@ -55,28 +55,31 @@ void Boundary::bounceBackBottom(Lattice& lattice)
     auto& f = lattice.distributions();
 
 
-
     #pragma omp parallel for
-    for(int x = 0; x < nx; ++x)
+    for(int x=0;x<nx;x++)
     {
 
-        int y = 0;
+        int y=0;
 
 
+        // q3 <-> q4
         f[lattice.index(3,x,y)] =
             f[lattice.index(4,x,y)];
 
 
+        // q5 <-> q7
         f[lattice.index(5,x,y)] =
             f[lattice.index(7,x,y)];
 
 
+        // q8 <-> q6
         f[lattice.index(8,x,y)] =
             f[lattice.index(6,x,y)];
 
     }
 
 }
+
 
 
 
@@ -93,12 +96,11 @@ void Boundary::bounceBackLeft(Lattice& lattice)
     auto& f = lattice.distributions();
 
 
-
     #pragma omp parallel for
-    for(int y = 0; y < ny; ++y)
+    for(int y=0;y<ny;y++)
     {
 
-        int x = 0;
+        int x=0;
 
 
         f[lattice.index(1,x,y)] =
@@ -121,6 +123,7 @@ void Boundary::bounceBackLeft(Lattice& lattice)
 
 
 
+
 //==================================================
 // Right wall - no slip bounce back
 //==================================================
@@ -131,12 +134,11 @@ void Boundary::bounceBackRight(Lattice& lattice)
     auto& f = lattice.distributions();
 
 
-
     #pragma omp parallel for
-    for(int y = 0; y < ny; ++y)
+    for(int y=0;y<ny;y++)
     {
 
-        int x = nx-1;
+        int x=nx-1;
 
 
         f[lattice.index(2,x,y)] =
@@ -159,6 +161,9 @@ void Boundary::bounceBackRight(Lattice& lattice)
 
 
 
+
+
+
 //==================================================
 // Moving lid - Zou-He velocity boundary
 //==================================================
@@ -171,57 +176,71 @@ void Boundary::movingTop(Lattice& lattice)
 
 
     #pragma omp parallel for
-    for(int x = 1; x < nx-1; ++x)
+    for(int x=1;x<nx-1;x++)
     {
 
-        int y = ny-1;
+        int y=ny-1;
+
+
+
+        /*
+            Missing populations:
+
+              q4 = (0,-1)
+              q6 = (-1,-1)
+              q8 = (1,-1)
+
+        */
 
 
 
         double rho =
-            f[lattice.index(0,x,y)]
-          +
-            f[lattice.index(1,x,y)]
-          +
-            f[lattice.index(2,x,y)]
-          +
-            2.0 *
-            (
-              f[lattice.index(3,x,y)]
-            +
-              f[lattice.index(5,x,y)]
-            +
-              f[lattice.index(7,x,y)]
-            );
+              f[lattice.index(0,x,y)]
+            + f[lattice.index(1,x,y)]
+            + f[lattice.index(2,x,y)]
+            + 2.0 *
+              (
+                  f[lattice.index(3,x,y)]
+                + f[lattice.index(5,x,y)]
+                + f[lattice.index(7,x,y)]
+              );
 
 
 
-        //--------------------------------------
-        // Zou-He reconstruction
-        //--------------------------------------
 
+        //----------------------------------
+        // normal direction
+        //----------------------------------
 
-        f[lattice.index(4,x,y)] =
-            f[lattice.index(3,x,y)]
-            -
-            (2.0/3.0)
-            *
-            rho
-            *
-            0.0;
+        f[lattice.index(4,x,y)]
+            =
+            f[lattice.index(3,x,y)];
 
 
 
-        f[lattice.index(8,x,y)] =
-            f[lattice.index(7,x,y)]
-            -
-            0.5*
+
+        //----------------------------------
+        // diagonal populations
+        //----------------------------------
+
+        double correction =
+            0.5 *
             (
                 f[lattice.index(1,x,y)]
               -
                 f[lattice.index(2,x,y)]
-            )
-            -
+            );
+
+
+
+        // q8 = (1,-1)
+
+        f[lattice.index(8,x,y)]
+            =
+            f[lattice.index(7,x,y)]
+            +
+            correction
+            +
             (1.0/6.0)
             *
             rho
@@ -230,16 +249,14 @@ void Boundary::movingTop(Lattice& lattice)
 
 
 
-        f[lattice.index(6,x,y)] =
+        // q6 = (-1,-1)
+
+        f[lattice.index(6,x,y)]
+            =
             f[lattice.index(5,x,y)]
-            +
-            0.5*
-            (
-                f[lattice.index(1,x,y)]
-              -
-                f[lattice.index(2,x,y)]
-            )
-            +
+            -
+            correction
+            -
             (1.0/6.0)
             *
             rho
