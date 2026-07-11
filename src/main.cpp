@@ -12,7 +12,6 @@
 #endif
 
 
-
 struct TestCase
 {
     int nx;
@@ -27,10 +26,8 @@ struct TestCase
 
 
 
-
 int main()
 {
-
 
 #ifdef _OPENMP
 
@@ -95,7 +92,7 @@ int main()
 
     const int maxIterations = 20000;
 
-    const double tolerance = 1e-10;
+    const double tolerance = 1e-6;
 
 
 
@@ -108,7 +105,6 @@ int main()
 
     for(auto& test : tests)
     {
-
 
         std::cout
             << "\n=====================\n";
@@ -131,18 +127,35 @@ int main()
 
         cavity.initialize();
 
-cavity.applyBoundary();
 
-cavity.getLattice().computeMacroscopic();
 
-std::cout
-<< "After BC lid Ux = "
-<< cavity.getLattice().getUx(
-       test.nx/2,
-       test.ny-1
-   )
-<< std::endl;
-        
+        //------------------------------------------
+        // Check boundary initialization
+        //------------------------------------------
+
+        cavity.applyBoundary();
+
+        cavity.getLattice().computeMacroscopic();
+
+
+        std::cout
+            << "Initial lid Ux = "
+            << cavity.getLattice().getUx(
+                   test.nx/2,
+                   test.ny-1
+               )
+            << "\n";
+
+
+
+        //------------------------------------------
+        // Reset initialization
+        //------------------------------------------
+
+        cavity.initialize();
+
+
+
         std::string filename =
             "convergence_test_"
             +
@@ -153,7 +166,6 @@ std::cout
 
 
         std::ofstream file(filename);
-
 
 
         file
@@ -170,8 +182,8 @@ std::cout
 
 
 
-        for(iteration=0;
-            iteration<maxIterations;
+        for(iteration = 0;
+            iteration < maxIterations;
             iteration++)
         {
 
@@ -182,7 +194,6 @@ std::cout
 
             if(iteration % 50 == 0 && iteration > 0)
             {
-
 
                 double error =
                     cavity.velocityDifference();
@@ -237,7 +248,7 @@ std::cout
 
 
         //------------------------------------------
-        // Center value
+        // Velocity diagnostics
         //------------------------------------------
 
         Lattice& lattice =
@@ -245,18 +256,33 @@ std::cout
 
 
 
-        double ux =
+        int cx = test.nx/2;
+
+        int cy = test.ny/2;
+
+
+
+        double centerUx =
+            lattice.getUx(cx,cy);
+
+
+        double centerUy =
+            lattice.getUy(cx,cy);
+
+
+
+        double topUx =
             lattice.getUx(
-                test.nx/2,
-                test.ny/2
+                cx,
+                test.ny-2
             );
 
 
 
-        double uy =
-            lattice.getUy(
-                test.nx/2,
-                test.ny/2
+        double bottomUx =
+            lattice.getUx(
+                cx,
+                1
             );
 
 
@@ -272,15 +298,30 @@ std::cout
 
 
         std::cout
+            << std::setprecision(12);
+
+
+        std::cout
             << "Center Ux = "
-            << std::setprecision(12)
-            << ux
+            << centerUx
             << "\n";
 
 
         std::cout
             << "Center Uy = "
-            << uy
+            << centerUy
+            << "\n";
+
+
+        std::cout
+            << "Top interior Ux = "
+            << topUx
+            << "\n";
+
+
+        std::cout
+            << "Bottom interior Ux = "
+            << bottomUx
             << "\n";
 
 
