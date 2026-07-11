@@ -1,61 +1,92 @@
 #ifndef LATTICE_HPP
 #define LATTICE_HPP
 
+#include <array>
 #include <vector>
 
 class Lattice
 {
-private:
+public:
 
-    //-------------------------
-    // Grid dimensions
-    //-------------------------
+    // ============================
+    // Constructor
+    // ============================
 
-    int nx;
-    int ny;
+    Lattice(int nx,
+            int ny,
+            double omega_p,
+            double omega_m,
+            double rho0 = 1.0);
 
-    //-------------------------
-    // D2Q9 constants
-    //-------------------------
+    // ============================
+    // Initialization
+    // ============================
 
-    static constexpr int Q = 9;
+    void initialize();
 
-    int c[Q][2];
+    // ============================
+    // LBM algorithm
+    // ============================
 
-    double w[Q];
+    void computeMacroscopic();
 
-    int opposite[Q];
+    void computeEquilibrium();
 
-    //-------------------------
-    // TRT parameters
-    //-------------------------
+    void collision();
 
-    double omega_p;
-    double omega_m;
+    void streaming();
 
-    //-------------------------
-    // Distribution functions
-    //-------------------------
+    // ============================
+    // Getters
+    // ============================
 
-    std::vector<double> f;
+    int getNx() const { return nx; }
 
-    std::vector<double> f_eq;
+    int getNy() const { return ny; }
 
-    std::vector<double> f_post;
+    double getRho(int x,int y) const;
 
-    //-------------------------
-    // Macroscopic variables
-    //-------------------------
+    double getUx(int x,int y) const;
 
-    std::vector<double> rho;
+    double getUy(int x,int y) const;
 
-    std::vector<double> ux;
+    // ============================
+    // Access to distributions
+    // (needed by Boundary.cpp)
+    // ============================
 
-    std::vector<double> uy;
+    std::vector<double>& distributions()
+    {
+        return f;
+    }
 
-    //-------------------------
-    // Indexing
-    //-------------------------
+    std::vector<double>& postCollision()
+    {
+        return f_post;
+    }
+
+    // ============================
+    // D2Q9 information
+    // ============================
+
+    const std::array<std::array<int,2>,9>& velocities() const
+    {
+        return c;
+    }
+
+    const std::array<int,9>& oppositeDirections() const
+    {
+        return opposite;
+    }
+
+    const std::array<double,9>& weights() const
+    {
+        return w;
+    }
+
+    // ============================
+    // Index utilities
+    // ============================
 
     inline int index(int q,int x,int y) const
     {
@@ -67,56 +98,56 @@ private:
         return x*ny + y;
     }
 
-public:
+private:
 
-    //-------------------------
-    // Constructor
-    //-------------------------
+    // ============================
+    // Grid
+    // ============================
 
-    Lattice(int nx,
-            int ny,
-            double omega_p,
-            double omega_m);
+    int nx;
+    int ny;
 
-    //-------------------------
-    // Initialization
-    //-------------------------
+    static constexpr int Q = 9;
 
-    void initialize();
+    // ============================
+    // TRT parameters
+    // ============================
 
-    //-------------------------
-    // LBM steps
-    //-------------------------
+    double omega_p;
+    double omega_m;
 
-    void computeMacroscopic();
+    double rho0;
 
-    void computeEquilibrium();
+    // ============================
+    // D2Q9
+    // ============================
 
-    void collision();
+    std::array<std::array<int,2>,9> c;
 
-    void streaming();
+    std::array<double,9> w;
 
-    //-------------------------
-    // Accessors
-    //-------------------------
+    std::array<int,9> opposite;
 
-    int getNx() const;
+    // ============================
+    // Distribution functions
+    // ============================
 
-    int getNy() const;
+    std::vector<double> f;
 
-    double getRho(int x,int y) const;
+    std::vector<double> f_eq;
 
-    double getUx(int x,int y) const;
+    std::vector<double> f_post;
 
-    double getUy(int x,int y) const;
+    // ============================
+    // Macroscopic variables
+    // ============================
 
-    //-------------------------
-    // Access to distributions
-    //-------------------------
+    std::vector<double> rho;
 
-    double& F(int q,int x,int y);
+    std::vector<double> ux;
 
-    const double& F(int q,int x,int y) const;
+    std::vector<double> uy;
+
 };
 
 #endif
