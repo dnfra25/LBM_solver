@@ -91,49 +91,17 @@ void Cavity::initialize()
 
 void Cavity::step()
 {
-
-    //--------------------------------------
-    // 1. macroscopic variables
-    //--------------------------------------
-
     lattice.computeMacroscopic();
-
-
-    //--------------------------------------
-    // 2. equilibrium
-    //--------------------------------------
 
     lattice.computeEquilibrium();
 
-
-    //--------------------------------------
-    // 3. TRT collision
-    //--------------------------------------
-
     lattice.collision();
-
-
-    //--------------------------------------
-    // 4. streaming
-    //--------------------------------------
 
     lattice.streaming();
 
-
-    //--------------------------------------
-    // 5. boundary conditions
-    //--------------------------------------
-
     boundary.apply(lattice);
 
-
-    //--------------------------------------
-    // 6. update macroscopic fields
-    //    after boundary
-    //--------------------------------------
-
     lattice.computeMacroscopic();
-
 }
 
 
