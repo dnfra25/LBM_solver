@@ -131,14 +131,18 @@ int main()
 
         cavity.initialize();
 
+cavity.applyBoundary();
+
+cavity.getLattice().computeMacroscopic();
+
 std::cout
-<< "Top lid velocity = "
+<< "After BC lid Ux = "
 << cavity.getLattice().getUx(
-       cavity.getLattice().getNx()/2,
-       cavity.getLattice().getNy()-1
+       test.nx/2,
+       test.ny-1
    )
 << std::endl;
-
+        
         std::string filename =
             "convergence_test_"
             +
