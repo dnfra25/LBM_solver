@@ -7,6 +7,7 @@
 //==================================================
 // Constructor
 //==================================================
+
 Lattice::Lattice(int nx_,
                  int ny_,
                  double omega_p_,
@@ -20,20 +21,16 @@ omega_m(omega_m_),
 rho0(rho0_)
 {
     const int size = nx * ny;
-    //----------------------------------------------
-    // Allocate memory
-    //----------------------------------------------
 
     f.resize(Q * size, 0.0);
     f_eq.resize(Q * size, 0.0);
     f_post.resize(Q * size, 0.0);
+
     rho.resize(size, rho0);
     ux.resize(size, 0.0);
     uy.resize(size, 0.0);
 
-    //----------------------------------------------
-    // D2Q9 lattice velocities
-    //----------------------------------------------
+    // D2Q9 velocities
 
     c =
     {{
@@ -52,9 +49,7 @@ rho0(rho0_)
         {{ 1,-1 }}
     }};
 
-    //----------------------------------------------
     // D2Q9 weights
-    //----------------------------------------------
 
     w =
     {{
@@ -73,9 +68,7 @@ rho0(rho0_)
         1.0/36.0
     }};
 
-    //----------------------------------------------
     // Opposite directions
-    //----------------------------------------------
 
     opposite =
     {{
@@ -92,40 +85,44 @@ rho0(rho0_)
 
 }
 
-
 //==================================================
-// Initialize distributions
+// Initialization
 //==================================================
 
 void Lattice::initialize()
 {
 
     #pragma omp parallel for collapse(2)
-    for(int x = 0; x < nx; ++x)
+    for(int x=0;x<nx;x++)
     {
-        for(int y = 0; y < ny; ++y)
+        for(int y=0;y<ny;y++)
         {
 
             int id = cell(x,y);
-            rho[id] = rho0;
-            ux[id] = 0.0;
-            uy[id] = 0.0;
 
-            for(int q = 0; q < Q; ++q)
+            rho[id]=rho0;
+            ux[id]=0.0;
+            uy[id]=0.0;
+
+
+
+            for(int q=0;q<Q;q++)
             {
 
-                double equilibrium =
-                    rho0 * w[q];
+                double feq =
+                    rho0*w[q];
 
 
                 f[index(q,x,y)] =
-                    equilibrium;
+                    feq;
+
 
                 f_eq[index(q,x,y)] =
-                    equilibrium;
+                    feq;
+
 
                 f_post[index(q,x,y)] =
-                    equilibrium;
+                    feq;
 
             }
 
@@ -144,20 +141,20 @@ void Lattice::computeMacroscopic()
 {
 
     #pragma omp parallel for collapse(2)
-    for(int x = 0; x < nx; ++x)
+    for(int x=0;x<nx;x++)
     {
-        for(int y = 0; y < ny; ++y)
+        for(int y=0;y<ny;y++)
         {
 
-            double density = 0.0;
+            double density=0.0;
 
-            double vx = 0.0;
+            double vx=0.0;
 
-            double vy = 0.0;
+            double vy=0.0;
 
 
 
-            for(int q = 0; q < Q; ++q)
+            for(int q=0;q<Q;q++)
             {
 
                 double fq =
@@ -167,28 +164,39 @@ void Lattice::computeMacroscopic()
                 density += fq;
 
 
-                vx += fq * c[q][0];
+                vx += fq*c[q][0];
 
-                vy += fq * c[q][1];
+                vy += fq*c[q][1];
 
             }
 
 
 
-            int id = cell(x,y);
+            int id =
+                cell(x,y);
 
 
-            rho[id] = density;
+
+            rho[id]=density;
 
 
-            ux[id] = vx / density;
 
-            uy[id] = vy / density;
+            if(density>1e-14)
+            {
+                ux[id]=vx/density;
+                uy[id]=vy/density;
+            }
+            else
+            {
+                ux[id]=0.0;
+                uy[id]=0.0;
+            }
 
         }
     }
 
 }
+
 
 
 //==================================================
@@ -199,12 +207,14 @@ void Lattice::computeEquilibrium()
 {
 
     #pragma omp parallel for collapse(2)
-    for(int x = 0; x < nx; ++x)
+    for(int x=0;x<nx;x++)
     {
-        for(int y = 0; y < ny; ++y)
+        for(int y=0;y<ny;y++)
         {
 
-            int id = cell(x,y);
+            int id =
+                cell(x,y);
+
 
 
             double u2 =
@@ -214,7 +224,7 @@ void Lattice::computeEquilibrium()
 
 
 
-            for(int q = 0; q < Q; ++q)
+            for(int q=0;q<Q;q++)
             {
 
                 double cu =
@@ -223,11 +233,15 @@ void Lattice::computeEquilibrium()
                     uy[id]*c[q][1];
 
 
+
                 double feq =
                     1.0
-                    + 3.0*cu
-                    + 4.5*cu*cu
-                    - 1.5*u2;
+                    +
+                    3.0*cu
+                    +
+                    4.5*cu*cu
+                    -
+                    1.5*u2;
 
 
 
@@ -244,42 +258,30 @@ void Lattice::computeEquilibrium()
     }
 
 }
+
+
+
 //==================================================
-// TRT collision step
+// TRT collision
 //==================================================
 
 void Lattice::collision()
 {
 
-    /*
-    
-    Equivalent to:
-
-        nb_col_str()
-
-    from the original Python repository.
-
-    Here we compute:
-
-        f_post
-
-    from:
-
-        f
-        f_eq
-
-    */
 
     #pragma omp parallel for collapse(2)
-    for(int x = 0; x < nx; ++x)
+    for(int x=0;x<nx;x++)
     {
-        for(int y = 0; y < ny; ++y)
+        for(int y=0;y<ny;y++)
         {
 
-            for(int q = 0; q < Q; ++q)
+            for(int q=0;q<Q;q++)
             {
 
-                int qb = opposite[q];
+
+                int qb =
+                    opposite[q];
+
 
 
                 double fq =
@@ -288,6 +290,7 @@ void Lattice::collision()
 
                 double fqb =
                     f[index(qb,x,y)];
+
 
 
                 double feq =
@@ -310,10 +313,9 @@ void Lattice::collision()
 
                 f_post[index(q,x,y)] =
 
-                    (1.0 - 0.5*sum)*fq
+                    (1.0-0.5*sum)*fq
 
                     -
-
                     0.5*diff*fqb
 
                     +
@@ -333,139 +335,66 @@ void Lattice::collision()
 
 
 
-
-
-
 //==================================================
-// Streaming step
+// Streaming - pull scheme
 //==================================================
 
 void Lattice::streaming()
 {
 
-    /*
-    
-    Equivalent to:
-
-        g <- streamed g_up
-
-    in the Python implementation.
-
-    */
-
-
-    //----------------------------------------------
-    // Rest population
-    //----------------------------------------------
 
     #pragma omp parallel for collapse(2)
-    for(int x = 0; x < nx; ++x)
+    for(int x=0;x<nx;x++)
     {
-        for(int y = 0; y < ny; ++y)
+        for(int y=0;y<ny;y++)
         {
 
-            f[index(0,x,y)] =
-                f_post[index(0,x,y)];
+
+            for(int q=0;q<Q;q++)
+            {
+
+
+                int xs =
+                    x-c[q][0];
+
+
+                int ys =
+                    y-c[q][1];
+
+
+
+                if(xs>=0 && xs<nx &&
+                   ys>=0 && ys<ny)
+                {
+
+                    f[index(q,x,y)]
+                    =
+                    f_post[index(q,xs,ys)];
+
+                }
+                else
+                {
+
+                    /*
+                     Boundary populations
+                     are corrected by Boundary::apply()
+                    */
+
+
+                    f[index(q,x,y)]
+                    =
+                    f_post[index(q,x,y)];
+
+                }
+
+
+            }
 
         }
     }
 
-
-
-    //----------------------------------------------
-    // Moving populations
-    //----------------------------------------------
-
-    #pragma omp parallel for collapse(2)
-    for(int x = 0; x < nx; ++x)
-    {
-        for(int y = 0; y < ny; ++y)
-        {
-
-
-            // q=1 : east
-
-            if(x+1 < nx)
-            {
-                f[index(1,x+1,y)] =
-                    f_post[index(1,x,y)];
-            }
-
-
-
-            // q=2 : west
-
-            if(x-1 >= 0)
-            {
-                f[index(2,x-1,y)] =
-                    f_post[index(2,x,y)];
-            }
-
-
-
-            // q=3 : north
-
-            if(y+1 < ny)
-            {
-                f[index(3,x,y+1)] =
-                    f_post[index(3,x,y)];
-            }
-
-
-
-            // q=4 : south
-
-            if(y-1 >= 0)
-            {
-                f[index(4,x,y-1)] =
-                    f_post[index(4,x,y)];
-            }
-
-
-
-            // q=5 : north-east
-
-            if((x+1 < nx) && (y+1 < ny))
-            {
-                f[index(5,x+1,y+1)] =
-                    f_post[index(5,x,y)];
-            }
-
-
-
-            // q=6 : south-west
-
-            if((x-1 >= 0) && (y-1 >= 0))
-            {
-                f[index(6,x-1,y-1)] =
-                    f_post[index(6,x,y)];
-            }
-
-
-
-            // q=7 : north-west
-
-            if((x-1 >= 0) && (y+1 < ny))
-            {
-                f[index(7,x-1,y+1)] =
-                    f_post[index(7,x,y)];
-            }
-
-
-
-            // q=8 : south-east
-
-            if((x+1 < nx) && (y-1 >= 0))
-            {
-                f[index(8,x+1,y-1)] =
-                    f_post[index(8,x,y)];
-            }
-
-        }
-    }
 
 }
-
 
 
 
@@ -490,9 +419,6 @@ void Lattice::step()
 
 
 
-
-
-
 //==================================================
 // Get density
 //==================================================
@@ -512,6 +438,7 @@ double Lattice::getUx(int x,int y) const
 {
     return ux[cell(x,y)];
 }
+
 
 
 //==================================================
