@@ -91,48 +91,17 @@ void Cavity::initialize()
 
 void Cavity::step()
 {
-
-    /*
-        LBM cycle:
-
-        1) macroscopic fields
-        2) equilibrium
-        3) collision
-        4) streaming
-        5) boundary conditions
-        6) update macroscopic fields
-
-    */
-
-
     lattice.computeMacroscopic();
-
 
     lattice.computeEquilibrium();
 
-
     lattice.collision();
-
 
     lattice.streaming();
 
-
     boundary.apply(lattice);
 
-
-
-    /*
-        Important:
-
-        Boundary conditions modify
-        distribution functions.
-
-        Therefore rho,u must be
-        updated afterwards.
-    */
-
     lattice.computeMacroscopic();
-
 }
 
 
