@@ -131,9 +131,12 @@ int main()
 
         cavity.initialize();
 
-std::cout 
+std::cout
 << "Top lid velocity = "
-<< cavity.getLattice().getUx(nx/2,ny-1)
+<< cavity.getLattice().getUx(
+       cavity.getLattice().getNx()/2,
+       cavity.getLattice().getNy()-1
+   )
 << std::endl;
 
         std::string filename =
