@@ -23,7 +23,7 @@ ny(ny_),
 Re(Reynolds_),
 U_lid(lidVelocity_),
 
-viscosity(U_lid * (nx - 1) / Re),
+viscosity(U_lid * (nx_ - 1) / Re),
 
 omega_p(
     1.0 /
@@ -35,21 +35,22 @@ omega_m(
     (
         0.5
         +
-        0.25 /
+        (3.0/16.0)
+        /
         (
             1.0/omega_p - 0.5
         )
     )
 ),
 
-lattice(nx,
-        ny,
+lattice(nx_,
+        ny_,
         omega_p,
         omega_m,
         1.0),
 
-boundary(nx,
-         ny,
+boundary(nx_,
+         ny_,
          U_lid)
 
 {
@@ -91,6 +92,7 @@ void Cavity::initialize()
 
 void Cavity::step()
 {
+
     lattice.computeMacroscopic();
 
     lattice.computeEquilibrium();
@@ -102,7 +104,9 @@ void Cavity::step()
     boundary.apply(lattice);
 
     lattice.computeMacroscopic();
+
 }
+
 
 
 //==================================================
@@ -144,16 +148,18 @@ double Cavity::velocityDifference()
     bool invalid = false;
 
 
+    std::vector<double> newUx(nx*ny);
+    std::vector<double> newUy(nx*ny);
 
-    #pragma omp parallel for collapse(2) reduction(max:error)
+
+
+    #pragma omp parallel for collapse(2)
     for(int x=0;x<nx;x++)
     {
         for(int y=0;y<ny;y++)
         {
 
-            int id =
-                x*ny+y;
-
+            int id = x*ny+y;
 
 
             double ux =
@@ -164,53 +170,61 @@ double Cavity::velocityDifference()
                 lattice.getUy(x,y);
 
 
-
-            /*
-                Detect numerical divergence
-            */
-
-            if(!std::isfinite(ux) ||
-               !std::isfinite(uy))
-            {
-                invalid = true;
-                continue;
-            }
-
-
-
-            double dux =
-                std::abs(
-                    ux-oldUx[id]
-                );
-
-
-            double duy =
-                std::abs(
-                    uy-oldUy[id]
-                );
-
-
-
-            error =
-                std::max(
-                    error,
-                    std::max(dux,duy)
-                );
-
-
-
-            oldUx[id]=ux;
-
-            oldUy[id]=uy;
+            newUx[id] = ux;
+            newUy[id] = uy;
 
         }
     }
 
 
 
+    #pragma omp parallel for reduction(max:error)
+    for(int id=0; id<nx*ny; id++)
+    {
+
+        double ux = newUx[id];
+
+        double uy = newUy[id];
+
+
+        if(!std::isfinite(ux) ||
+           !std::isfinite(uy))
+        {
+            invalid = true;
+            continue;
+        }
+
+
+        double dux =
+            std::abs(
+                ux - oldUx[id]
+            );
+
+
+        double duy =
+            std::abs(
+                uy - oldUy[id]
+            );
+
+
+        error =
+            std::max(
+                error,
+                std::max(dux,duy)
+            );
+
+    }
+
+
+
+    oldUx = newUx;
+
+    oldUy = newUy;
+
+
+
     if(invalid)
         return 1e30;
-
 
 
     return error;
