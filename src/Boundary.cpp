@@ -160,68 +160,71 @@ void Boundary::movingTop(Lattice& lattice)
     auto& f = lattice.distributions();
 
 
+    #pragma omp parallel for
     for(int x = 1; x < nx-1; ++x)
     {
 
         int y = ny-1;
 
 
-        //--------------------------------------
-        // Density reconstruction
-        //--------------------------------------
+        /*
+            Zou-He moving wall
+
+            Unknown populations:
+                q=3  north
+                q=5  north-east
+                q=7  north-west
+
+            Known:
+                q=0,1,2,4,6,8
+
+        */
+
 
         double rho =
               f[lattice.index(0,x,y)]
             + f[lattice.index(1,x,y)]
             + f[lattice.index(2,x,y)]
             + 2.0 *
-            (
-                f[lattice.index(3,x,y)]
-              + f[lattice.index(5,x,y)]
-              + f[lattice.index(7,x,y)]
-            );
+              (
+                  f[lattice.index(4,x,y)]
+                + f[lattice.index(6,x,y)]
+                + f[lattice.index(8,x,y)]
+              );
 
 
-        //--------------------------------------
-        // Zou-He moving wall
-        //
-        // D2Q9 convention:
-        //
-        // 0 rest
-        // 1 east
-        // 2 west
-        // 3 north
-        // 4 south
-        // 5 NE
-        // 6 SW
-        // 7 NW
-        // 8 SE
-        //
-        //--------------------------------------
+        double ux = lidVelocity;
+
+        double uy = 0.0;
 
 
-        // south population
 
-        f[lattice.index(4,x,y)] =
-            f[lattice.index(3,x,y)]
-            -
+        //------------------------------------
+        // Normal population
+        //------------------------------------
+
+        f[lattice.index(3,x,y)] =
+            f[lattice.index(4,x,y)]
+            +
             (2.0/3.0)
             *
             rho
             *
-            0.0;
+            uy;
 
 
 
-        // south-west
+        //------------------------------------
+        // North-West
+        //------------------------------------
 
-        f[lattice.index(6,x,y)] =
-            f[lattice.index(8,x,y)]
+        f[lattice.index(7,x,y)] =
+            f[lattice.index(5,x,y)]
             +
             0.5 *
             (
                 f[lattice.index(2,x,y)]
-              -
+                -
                 f[lattice.index(1,x,y)]
             )
             -
@@ -229,19 +232,21 @@ void Boundary::movingTop(Lattice& lattice)
             *
             rho
             *
-            lidVelocity;
+            ux;
 
 
 
-        // south-east
+        //------------------------------------
+        // North-East
+        //------------------------------------
 
-        f[lattice.index(8,x,y)] =
-            f[lattice.index(6,x,y)]
+        f[lattice.index(5,x,y)] =
+            f[lattice.index(7,x,y)]
             +
             0.5 *
             (
                 f[lattice.index(1,x,y)]
-              -
+                -
                 f[lattice.index(2,x,y)]
             )
             +
@@ -249,7 +254,8 @@ void Boundary::movingTop(Lattice& lattice)
             *
             rho
             *
-            lidVelocity;
+            ux;
+
 
     }
 
