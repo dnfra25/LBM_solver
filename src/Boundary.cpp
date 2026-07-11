@@ -163,42 +163,16 @@ void Boundary::movingTop(Lattice& lattice)
         int y = ny-1;
 
 
-
-        /*
-            Known populations:
-            
-            q=0
-            q=1
-            q=2
-            q=4
-            q=6
-            q=8
-
-
-            Unknown populations:
-
-            q=3
-            q=5
-            q=7
-
-        */
-
-
         double rho =
               f[lattice.index(0,x,y)]
             + f[lattice.index(1,x,y)]
             + f[lattice.index(2,x,y)]
             + 2.0 *
             (
-                f[lattice.index(4,x,y)]
-              + f[lattice.index(6,x,y)]
-              + f[lattice.index(8,x,y)]
+              f[lattice.index(4,x,y)]
+            + f[lattice.index(6,x,y)]
+            + f[lattice.index(8,x,y)]
             );
-
-
-
-        if(rho < 1e-12)
-            rho = 1.0;
 
 
 
@@ -206,65 +180,45 @@ void Boundary::movingTop(Lattice& lattice)
 
 
 
-        double uy = 0.0;
-
-
-
         /*
-            Zou-He reconstruction
+            Zou-He moving wall
+
+            Unknown:
+            q=3,5,7
         */
 
 
-        // q=3 north
-
         f[lattice.index(3,x,y)] =
-            f[lattice.index(4,x,y)]
-            +
-            (2.0/3.0)
-            *
-            rho
-            *
-            uy;
+            f[lattice.index(4,x,y)];
 
 
-
-        // q=5 north-east
 
         f[lattice.index(5,x,y)] =
             f[lattice.index(7,x,y)]
             +
-            0.5 *
+            0.5*
             (
                 f[lattice.index(2,x,y)]
               -
                 f[lattice.index(1,x,y)]
             )
             +
-            (1.0/6.0)
-            *
-            rho
-            *
-            ux;
+            rho*ux/6.0;
 
 
-
-        // q=7 north-west
 
         f[lattice.index(7,x,y)] =
             f[lattice.index(5,x,y)]
             -
-            0.5 *
+            0.5*
             (
                 f[lattice.index(2,x,y)]
               -
                 f[lattice.index(1,x,y)]
             )
-            -
-            (1.0/6.0)
-            *
-            rho
-            *
-            ux;
+            +
+            rho*ux/6.0;
+
 
     }
 
