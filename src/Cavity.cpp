@@ -23,7 +23,7 @@ ny(ny_),
 Re(Reynolds_),
 U_lid(lidVelocity_),
 
-viscosity(U_lid / Re),
+viscosity(U_lid * (nx - 1) / Re),
 
 omega_p(
     1.0 /
