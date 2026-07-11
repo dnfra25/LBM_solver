@@ -86,31 +86,64 @@ rho0(rho0_)
 }
 
 //==================================================
-// Initialization
+// Initialize distributions
 //==================================================
 
 void Lattice::initialize()
 {
 
     #pragma omp parallel for collapse(2)
-    for(int x=0;x<nx;x++)
+    for(int x = 0; x < nx; ++x)
     {
-        for(int y=0;y<ny;y++)
+        for(int y = 0; y < ny; ++y)
         {
 
             int id = cell(x,y);
 
-            rho[id]=rho0;
-            ux[id]=0.0;
-            uy[id]=0.0;
+
+            rho[id] = rho0;
+
+            double ux0 = 0.0;
+            double uy0 = 0.0;
+
+
+            ux[id] = ux0;
+            uy[id] = uy0;
 
 
 
-            for(int q=0;q<Q;q++)
+            double u2 =
+                ux0*ux0
+              +
+                uy0*uy0;
+
+
+
+            for(int q = 0; q < Q; ++q)
             {
 
+                double cu =
+                    ux0*c[q][0]
+                  +
+                    uy0*c[q][1];
+
+
+
                 double feq =
-                    rho0*w[q];
+                    rho0
+                    *
+                    w[q]
+                    *
+                    (
+                        1.0
+                        +
+                        3.0*cu
+                        +
+                        4.5*cu*cu
+                        -
+                        1.5*u2
+                    );
+
 
 
                 f[index(q,x,y)] =
