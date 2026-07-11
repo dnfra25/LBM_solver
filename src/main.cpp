@@ -131,7 +131,10 @@ int main()
 
         cavity.initialize();
 
-
+std::cout 
+<< "Top lid velocity = "
+<< cavity.getLattice().getUx(nx/2,ny-1)
+<< std::endl;
 
         std::string filename =
             "convergence_test_"
