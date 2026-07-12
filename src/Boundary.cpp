@@ -174,7 +174,7 @@ void Boundary::movingTop(Lattice& lattice)
               f[lattice.index(0,x,y)]
             + f[lattice.index(1,x,y)]
             + f[lattice.index(2,x,y)]
-            + 2.0 *
+            + 2.0*
               (
                 f[lattice.index(4,x,y)]
               + f[lattice.index(6,x,y)]
@@ -182,28 +182,15 @@ void Boundary::movingTop(Lattice& lattice)
               );
 
 
-        /*
-            Zou-He moving wall
-
-            unknown:
-              f3  north
-              f5  north-east
-              f7  north-west
-
-        */
-
-
-        // north
+        // normal population
 
         f[lattice.index(3,x,y)]
         =
-        f[lattice.index(4,x,y)]
-        +
-        (2.0/3.0)*rho*0.0;
+        f[lattice.index(4,x,y)];
 
 
 
-        // north-east
+        // NE
 
         f[lattice.index(5,x,y)]
         =
@@ -216,11 +203,11 @@ void Boundary::movingTop(Lattice& lattice)
             f[lattice.index(1,x,y)]
         )
         +
-        (rho*lidVelocity)/6.0;
+        rho*lidVelocity/3.0;
 
 
 
-        // north-west
+        // NW
 
         f[lattice.index(7,x,y)]
         =
@@ -233,8 +220,7 @@ void Boundary::movingTop(Lattice& lattice)
             f[lattice.index(2,x,y)]
         )
         -
-        (rho*lidVelocity)/6.0;
-
+        rho*lidVelocity/3.0;
 
     }
 
