@@ -438,7 +438,6 @@ void Lattice::streaming()
         for(int y=0;y<ny;y++)
         {
 
-
             for(int q=0;q<Q;q++)
             {
 
@@ -449,32 +448,33 @@ void Lattice::streaming()
                     y-c[q][1];
 
 
+                if(xs >= 0 &&
+                   xs < nx &&
+                   ys >= 0 &&
+                   ys < ny)
+                {
 
-                if(xs >=0 &&
-   xs<nx &&
-   ys>=0 &&
-   ys<ny)
-{
+                    f_new[index(q,x,y)]
+                    =
+                    f_post[index(q,xs,ys)];
 
-    f_new[index(q,x,y)]
-    =
-    f_post[index(q,xs,ys)];
+                }
+                else
+                {
 
-}
-else
-{
-    f_new[index(q,x,y)]
-    =
-    f_post[index(opposite[q],x,y)];
-}
+                    // niente bounce-back qui
+                    // il boundary lo gestisce Boundary.cpp
 
+                    f_new[index(q,x,y)]
+                    =
+                    f_post[index(q,x,y)];
+
+                }
 
             }
 
-
         }
     }
-
 
 
     f.swap(f_new);
