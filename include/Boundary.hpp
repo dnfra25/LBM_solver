@@ -8,18 +8,16 @@ class Boundary
 
 public:
 
-```
 Boundary(int nx,
          int ny,
          double lidVelocity);
 
 
 void apply(Lattice& lattice);
-```
+
 
 private:
 
-```
 int nx;
 int ny;
 
@@ -49,7 +47,7 @@ void bottomRightCorner(Lattice& lattice);
 void topLeftCorner(Lattice& lattice);
 
 void topRightCorner(Lattice& lattice);
-```
+
 
 };
 
