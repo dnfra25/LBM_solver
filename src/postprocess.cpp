@@ -6,17 +6,87 @@
 #include <string>
 #include <iomanip>
 
-struct Node
+
+struct Profile
 {
-    double rho;
-    double ux;
-    double uy;
+    std::vector<double> coord;
+    std::vector<double> value;
 };
+
+
+//==================================================
+// Read profile file
+//==================================================
+
+Profile readProfile(const std::string& filename)
+{
+    Profile profile;
+
+
+    std::ifstream file(filename);
+
+
+    if(!file)
+    {
+        std::cout
+            << "Cannot open "
+            << filename
+            << std::endl;
+
+        return profile;
+    }
+
+
+
+    std::string line;
+
+
+    while(std::getline(file,line))
+    {
+
+        if(line.empty())
+            continue;
+
+
+        if(line[0]=='#')
+            continue;
+
+
+
+        std::stringstream ss(line);
+
+
+        double x;
+        double u;
+
+
+        ss >> x >> u;
+
+
+        profile.coord.push_back(x);
+
+        profile.value.push_back(u);
+
+    }
+
+
+    file.close();
+
+
+    return profile;
+}
+
+
+
+//==================================================
+// Main
+//==================================================
 
 int main()
 {
+
     //--------------------------------------------------
-    // Reynolds numbers available
+    // Reynolds cases
     //--------------------------------------------------
 
     std::vector<int> Reynolds =
@@ -30,8 +100,10 @@ int main()
         10000
     };
 
+
+
     //--------------------------------------------------
-    // Grid points used by Ghia
+    // Ghia grid points
     //--------------------------------------------------
 
     std::vector<int> gridPts =
@@ -55,184 +127,200 @@ int main()
         1
     };
 
-    const int Nx = 129;
-    const int Ny = 129;
 
-    const int centerX = Nx/2;
-    const int centerY = Ny/2;
 
     //--------------------------------------------------
-    // Storage
+    // Read Ux and Uy profiles
     //--------------------------------------------------
 
-    std::map<int,std::vector<Node>> solutions;
+    std::map<int,Profile> Ux;
 
-    //--------------------------------------------------
-    // Read every field
-    //--------------------------------------------------
+    std::map<int,Profile> Uy;
+
+
 
     for(int Re : Reynolds)
     {
-        std::string filename =
-            "field_Re" + std::to_string(Re) + ".dat";
 
-        std::ifstream file(filename);
+        std::string uxFile =
+            "Ux_Re"
+            +
+            std::to_string(Re)
+            +
+            ".dat";
 
-        if(!file)
-        {
-            std::cout
-                << "Cannot open "
-                << filename
-                << std::endl;
 
-            continue;
-        }
+        std::string uyFile =
+            "Uy_Re"
+            +
+            std::to_string(Re)
+            +
+            ".dat";
 
-        std::vector<Node> field(Nx*Ny);
 
-        std::string line;
 
-        while(std::getline(file,line))
-        {
-            if(line.empty()) continue;
+        Ux[Re] = readProfile(uxFile);
 
-            if(line[0]=='#') continue;
+        Uy[Re] = readProfile(uyFile);
 
-            std::stringstream ss(line);
-
-            int x,y;
-
-            Node n;
-
-            ss >> x
-               >> y
-               >> n.rho
-               >> n.ux
-               >> n.uy;
-
-            field[x*Ny+y]=n;
-        }
-
-        solutions[Re]=field;
-
-        std::cout
-            << "Loaded "
-            << filename
-            << std::endl;
     }
 
+
+
     //--------------------------------------------------
-    // Horizontal centreline (u)
+    // Write Ux table
     //--------------------------------------------------
 
-    std::ofstream uFile("ghia_u.csv");
+    std::ofstream fileUx("ghia_u.csv");
 
-    uFile
+
+
+    fileUx
         << "gridpt,x";
 
-    for(int Re : Reynolds)
-        uFile << ",Re=" << Re;
 
-    uFile << "\n";
+    for(int Re : Reynolds)
+    {
+        fileUx
+            << ",Re="
+            << Re;
+    }
+
+
+    fileUx << "\n";
+
+
 
     for(int gp : gridPts)
     {
-        int x = gp-1;
 
-        double xcoord =
-            double(x)/(Nx-1);
+        int index =
+            gp-1;
 
-        uFile
+
+        double x =
+            double(index)/128.0;
+
+
+
+        fileUx
             << gp
             << ","
             << std::fixed
             << std::setprecision(6)
-            << xcoord;
+            << x;
+
+
 
         for(int Re : Reynolds)
         {
-            auto it = solutions.find(Re);
 
-            if(it==solutions.end())
+            if(Ux[Re].value.size() > index)
             {
-                uFile << ",";
-                continue;
+                fileUx
+                    << ","
+                    << std::scientific
+                    << Ux[Re].value[index];
+            }
+            else
+            {
+                fileUx << ",";
             }
 
-            const auto& field = it->second;
-
-            double u =
-                field[x*Ny+centerY].ux;
-
-            uFile
-                << ","
-                << std::scientific
-                << u;
         }
 
-        uFile << "\n";
+
+        fileUx << "\n";
+
     }
 
-    uFile.close();
+
+
+    fileUx.close();
+
+
 
     //--------------------------------------------------
-    // Vertical centreline (v)
+    // Write Uy table
     //--------------------------------------------------
 
-    std::ofstream vFile("ghia_v.csv");
+    std::ofstream fileUy("ghia_v.csv");
 
-    vFile
+
+
+    fileUy
         << "gridpt,y";
 
-    for(int Re : Reynolds)
-        vFile << ",Re=" << Re;
 
-    vFile << "\n";
+    for(int Re : Reynolds)
+    {
+        fileUy
+            << ",Re="
+            << Re;
+    }
+
+
+    fileUy << "\n";
+
+
 
     for(int gp : gridPts)
     {
-        int y = gp-1;
 
-        double ycoord =
-            double(y)/(Ny-1);
+        int index =
+            gp-1;
 
-        vFile
+
+
+        double y =
+            double(index)/128.0;
+
+
+
+        fileUy
             << gp
             << ","
             << std::fixed
             << std::setprecision(6)
-            << ycoord;
+            << y;
+
+
 
         for(int Re : Reynolds)
         {
-            auto it = solutions.find(Re);
 
-            if(it==solutions.end())
+            if(Uy[Re].value.size() > index)
             {
-                vFile << ",";
-                continue;
+                fileUy
+                    << ","
+                    << std::scientific
+                    << Uy[Re].value[index];
+            }
+            else
+            {
+                fileUy << ",";
             }
 
-            const auto& field = it->second;
-
-            double v =
-                field[centerX*Ny+y].uy;
-
-            vFile
-                << ","
-                << std::scientific
-                << v;
         }
 
-        vFile << "\n";
+
+        fileUy << "\n";
+
     }
 
-    vFile.close();
+
+
+    fileUy.close();
+
+
 
     std::cout
-        << "\nGenerated:\n"
-        << "   ghia_u.csv\n"
-        << "   ghia_v.csv\n";
+        << "\nPostprocess completed\n"
+        << "Generated:\n"
+        << "  ghia_u.csv\n"
+        << "  ghia_v.csv\n";
+
+
 
     return 0;
 }
