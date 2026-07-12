@@ -1,5 +1,5 @@
 #include "Cavity.hpp"
-
+#include <iostream>
 #include <cmath>
 #include <algorithm>
 #include <fstream>
@@ -78,6 +78,30 @@ boundary(
 
 {
 
+  std::cout
+    << "Re = "
+    << Re
+    << "\n";
+
+std::cout
+    << "U_lid = "
+    << U_lid
+    << "\n";
+
+std::cout
+    << "nu = "
+    << viscosity
+    << "\n";
+
+std::cout
+    << "omega_plus = "
+    << omega_p
+    << "\n";
+
+std::cout
+    << "omega_minus = "
+    << omega_m
+    << "\n\n";
     oldUx.resize(
         nx*ny,
         0.0
