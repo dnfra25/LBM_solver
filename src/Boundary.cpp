@@ -309,20 +309,22 @@ void Boundary::topRightCorner(Lattice& lattice)
 
     auto& f = lattice.distributions();
 
-
-    int x=nx-1;
-    int y=ny-1;
-
-
-    f[lattice.index(2,x,y)] =
-        f[lattice.index(1,x,y)];
+    int x = nx-1;
+    int y = ny-1;
 
 
-    f[lattice.index(4,x,y)] =
-        f[lattice.index(3,x,y)];
+    f[lattice.index(1,x,y)]
+    =
+    f[lattice.index(2,x,y)];
 
 
-    f[lattice.index(6,x,y)] =
-        f[lattice.index(5,x,y)];
+    f[lattice.index(3,x,y)]
+    =
+    f[lattice.index(4,x,y)];
+
+
+    f[lattice.index(5,x,y)]
+    =
+    f[lattice.index(6,x,y)];
 
 }
