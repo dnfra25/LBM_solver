@@ -5,7 +5,6 @@
 #include <fstream>
 #include <iomanip>
 
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -26,53 +25,40 @@ ny(ny_),
 Re(Reynolds_),
 U_lid(lidVelocity_),
 
+viscosity(U_lid * (nx_ - 1) / Re),
 
-viscosity(
-    U_lid * (nx_-1) / Re
-),
-
-
-omega_p
-(
+omega_p(
     1.0 /
     (
         0.5 + 3.0*viscosity
     )
 ),
 
-
 omega_m(0.0),
 
+lattice(nx_,
+        ny_,
+        omega_p,
+        omega_m,
+        1.0),
 
-lattice
-(
-    nx_,
-    ny_,
-    omega_p,
-    omega_m,
-    1.0
-),
-
-
-boundary
-(
-    nx_,
-    ny_,
-    U_lid
-)
+boundary(nx_,
+         ny_,
+         U_lid)
 
 {
 
-
     /*
-        TRT magic parameter
+        TRT parameters
 
-        (tau_p-0.5)(tau_m-0.5)=3/16
+        (tau_p - 0.5)(tau_m - 0.5)=Lambda
+
+        Lambda = 3/16
     */
 
 
     double tau_p =
-        1.0/omega_p;
+        1.0 / omega_p;
 
 
 
@@ -81,12 +67,12 @@ boundary
         +
         (3.0/16.0)
         /
-        (tau_p-0.5);
+        (tau_p - 0.5);
 
 
 
     omega_m =
-        1.0/tau_m;
+        1.0 / tau_m;
 
 
 
@@ -108,18 +94,14 @@ void Cavity::initialize()
     lattice.initialize();
 
 
-    std::fill(
-        oldUx.begin(),
-        oldUx.end(),
-        0.0
-    );
+    std::fill(oldUx.begin(),
+              oldUx.end(),
+              0.0);
 
 
-    std::fill(
-        oldUy.begin(),
-        oldUy.end(),
-        0.0
-    );
+    std::fill(oldUy.begin(),
+              oldUy.end(),
+              0.0);
 
 }
 
@@ -131,6 +113,17 @@ void Cavity::initialize()
 
 void Cavity::step()
 {
+
+    /*
+        LBM cycle:
+
+        1) macroscopic variables
+        2) equilibrium
+        3) TRT collision
+        4) streaming
+        5) boundary reconstruction
+        6) update macroscopic variables
+    */
 
 
     lattice.computeMacroscopic();
@@ -149,7 +142,6 @@ void Cavity::step()
 
 
     lattice.computeMacroscopic();
-
 
 }
 
@@ -209,30 +201,31 @@ double Cavity::velocityDifference()
                 lattice.getUx(x,y);
 
 
+
             double uy =
                 lattice.getUy(x,y);
 
 
 
             double dux =
-                ux-oldUx[id];
+                ux - oldUx[id];
 
 
             double duy =
-                uy-oldUy[id];
+                uy - oldUy[id];
 
 
 
             num +=
                 dux*dux
-                +
+              +
                 duy*duy;
 
 
 
             den +=
                 ux*ux
-                +
+              +
                 uy*uy;
 
 
@@ -272,41 +265,41 @@ bool Cavity::converged(double tolerance)
 
 
 //==================================================
-// Export Ghia horizontal profile
+// Write horizontal centerline Ux
+//==================================================
 //
-// u_x along y=0.5
+// Ghia benchmark:
+// u velocity along horizontal
+// centerline of cavity
+//
+// y = (Ny-1)/2
 //
 //==================================================
 
-void Cavity::exportCenterVelocityProfile(
+void Cavity::writeCenterlineUx(
         const std::string& filename)
 {
 
     std::ofstream file(filename);
 
 
-
     file
-        << "# Ghia benchmark\n";
-
-    file
-        << "# x_index   X   Ux/U_lid\n";
-
+        << "# x ux\n";
 
 
     int y =
-        ny/2;
+        (ny-1)/2;
 
 
 
     file
+        << std::scientific
         << std::setprecision(12);
 
 
 
-    for(int x=0;x<nx;x++)
+    for(int x=0; x<nx; x++)
     {
-
 
         double X =
             static_cast<double>(x)
@@ -316,15 +309,11 @@ void Cavity::exportCenterVelocityProfile(
 
 
         double ux =
-            lattice.getUx(x,y)
-            /
-            U_lid;
+            lattice.getUx(x,y);
 
 
 
         file
-            << x
-            << " "
             << X
             << " "
             << ux
@@ -340,41 +329,41 @@ void Cavity::exportCenterVelocityProfile(
 
 
 //==================================================
-// Export Ghia vertical profile
+// Write vertical centerline Uy
+//==================================================
 //
-// u_y along x=0.5
+// Ghia benchmark:
+// v velocity along vertical
+// centerline of cavity
+//
+// x = (Nx-1)/2
 //
 //==================================================
 
-void Cavity::exportVerticalVelocityProfile(
+void Cavity::writeCenterlineUy(
         const std::string& filename)
 {
 
     std::ofstream file(filename);
 
 
-
     file
-        << "# Ghia benchmark\n";
-
-    file
-        << "# y_index   Y   Uy/U_lid\n";
-
+        << "# y uy\n";
 
 
     int x =
-        nx/2;
+        (nx-1)/2;
 
 
 
     file
+        << std::scientific
         << std::setprecision(12);
 
 
 
-    for(int y=0;y<ny;y++)
+    for(int y=0; y<ny; y++)
     {
-
 
         double Y =
             static_cast<double>(y)
@@ -384,15 +373,11 @@ void Cavity::exportVerticalVelocityProfile(
 
 
         double uy =
-            lattice.getUy(x,y)
-            /
-            U_lid;
+            lattice.getUy(x,y);
 
 
 
         file
-            << y
-            << " "
             << Y
             << " "
             << uy
