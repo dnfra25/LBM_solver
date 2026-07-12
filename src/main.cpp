@@ -123,7 +123,7 @@ int main()
     //------------------------------------------------
 
     const int maxIterations =
-        100;
+        5000;
 
 
     const double tolerance =
