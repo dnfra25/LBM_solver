@@ -298,6 +298,10 @@ void Lattice::computeEquilibrium()
 // TRT collision
 //==================================================
 
+//==================================================
+// TRT collision
+//==================================================
+
 void Lattice::collision()
 {
 
@@ -313,95 +317,99 @@ void Lattice::collision()
                 int qb = opposite[q];
 
 
-                // evita di processare due volte la stessa coppia
+                // Process every opposite pair only once
                 if(q > qb)
                     continue;
+
 
 
                 double fq =
                     f[index(q,x,y)];
 
+
                 double fqb =
                     f[index(qb,x,y)];
 
 
+
                 double feq =
                     f_eq[index(q,x,y)];
+
 
                 double feqb =
                     f_eq[index(qb,x,y)];
 
 
 
-                //--------------------------------------
-                // symmetric part
-                //--------------------------------------
+                //----------------------------------
+                // symmetric component
+                //----------------------------------
 
-                double fp =
+                double f_plus =
                     0.5*(fq + fqb);
 
 
-                double feqp =
+                double feq_plus =
                     0.5*(feq + feqb);
 
 
 
-                //--------------------------------------
-                // antisymmetric part
-                //--------------------------------------
+                //----------------------------------
+                // antisymmetric component
+                //----------------------------------
 
-                double fm =
+                double f_minus =
                     0.5*(fq - fqb);
 
 
-                double feqm =
+                double feq_minus =
                     0.5*(feq - feqb);
 
 
 
-                //--------------------------------------
+                //----------------------------------
                 // TRT relaxation
-                //--------------------------------------
+                //----------------------------------
 
-                double fp_new =
-                    fp
+                double f_plus_new =
+                    f_plus
                     -
-                    omega_p*(fp-feqp);
+                    omega_p*
+                    (f_plus-feq_plus);
 
 
 
-                double fm_new =
-                    fm
+                double f_minus_new =
+                    f_minus
                     -
-                    omega_m*(fm-feqm);
+                    omega_m*
+                    (f_minus-feq_minus);
 
 
 
-                //--------------------------------------
+                //----------------------------------
                 // reconstruction
-                //--------------------------------------
-
-                double fq_new =
-                    fp_new + fm_new;
-
-
-                double fqb_new =
-                    fp_new - fm_new;
-
-
+                //----------------------------------
 
                 f_post[index(q,x,y)]
                     =
-                    fq_new;
+                    f_plus_new
+                    +
+                    f_minus_new;
+
 
 
                 f_post[index(qb,x,y)]
                     =
-                    fqb_new;
+                    f_plus_new
+                    -
+                    f_minus_new;
+
 
             }
 
         }
+
     }
 
 }
