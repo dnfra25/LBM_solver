@@ -157,50 +157,46 @@ void Boundary::bounceBackRight(Lattice& lattice)
 void Boundary::movingTop(Lattice& lattice)
 {
 
-    auto& f = lattice.distributions();
+auto& f=lattice.distributions();
 
-    int y = ny-1;
+int y=ny-1;
 
 
-#pragma omp parallel for
-    for(int x=1; x<nx-1; ++x)
-    {
+for(int x=1;x<nx-1;x++)
+{
 
-       double rho =
-      f[lattice.index(0,x,y)]
-    + f[lattice.index(1,x,y)]
-    + f[lattice.index(2,x,y)]
-    + 2.0 *
+double rho =
+      f[index(0,x,y)]
+    + f[index(1,x,y)]
+    + f[index(2,x,y)]
+    + 2.0*
     (
-      f[lattice.index(4,x,y)]
-    + f[lattice.index(6,x,y)]
-    + f[lattice.index(8,x,y)]
+      f[index(4,x,y)]
+     +f[index(6,x,y)]
+     +f[index(8,x,y)]
     );
 
 
-        // N
-        f[lattice.index(3,x,y)]
-        =
-        f[lattice.index(4,x,y)];
+f[index(3,x,y)]
+=
+f[index(4,x,y)];
 
 
-        // NE
-        f[lattice.index(5,x,y)]
-        =
-        f[lattice.index(6,x,y)]
-        +
-        rho*lidVelocity/6.0;
+f[index(5,x,y)]
+=
+f[index(6,x,y)]
++
+rho*lidVelocity/6.0;
 
 
+f[index(7,x,y)]
+=
+f[index(8,x,y)]
+-
+rho*lidVelocity/6.0;
 
-        // NW
-        f[lattice.index(7,x,y)]
-        =
-        f[lattice.index(8,x,y)]
-        -
-        rho*lidVelocity/6.0;
 
-    }
+}
 
 }
 
