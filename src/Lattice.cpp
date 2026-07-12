@@ -212,6 +212,18 @@ void Lattice::computeMacroscopic()
 
             rho[id]=density;
 
+          if(!std::isfinite(density))
+{
+    std::cout
+    << "BAD density at x="
+    << x
+    << " y="
+    << y
+    << " rho="
+    << density
+    << std::endl;
+}
+
 
 
             if(density>1e-14)
