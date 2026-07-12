@@ -1,15 +1,11 @@
 #include "Boundary.hpp"
-
 #include <algorithm>
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-
-
 //==================================================
-// Constructor
+// Constructor: il contorno fisico della cavity 2d gestito qui
 //==================================================
 
 Boundary::Boundary(int nx_,
@@ -23,72 +19,47 @@ lidVelocity(lidVelocity_)
 
 }
 
-
-
 //==================================================
-// Apply all boundary conditions
+// In sequenza applico tutti i limiti al contorno
 //==================================================
 
 void Boundary::apply(Lattice& lattice)
 {
-
     bounceBackBottom(lattice);
-
     bounceBackLeft(lattice);
-
     bounceBackRight(lattice);
-
     movingTop(lattice);
-
-
     bottomLeftCorner(lattice);
-
     bottomRightCorner(lattice);
-
     topLeftCorner(lattice);
-
     topRightCorner(lattice);
-
 }
 
-
-
 //==================================================
-// Bottom wall
+// Parete inferiore
 //==================================================
 
 void Boundary::bounceBackBottom(Lattice& lattice)
 {
-
     auto& f = lattice.distributions();
-
-
     int y = 0;
-
-
     #pragma omp parallel for
     for(int x=1; x<nx-1; ++x)
     {
-
         f[lattice.index(3,x,y)] =
             f[lattice.index(4,x,y)];
 
-
         f[lattice.index(5,x,y)] =
             f[lattice.index(7,x,y)];
-
 
         f[lattice.index(8,x,y)] =
             f[lattice.index(6,x,y)];
 
     }
-
 }
 
-
-
 //==================================================
-// Left wall
+// PArete a sx
 //==================================================
 
 void Boundary::bounceBackLeft(Lattice& lattice)
@@ -122,7 +93,7 @@ void Boundary::bounceBackLeft(Lattice& lattice)
 
 
 //==================================================
-// Right wall
+// Parete a DX
 //==================================================
 
 void Boundary::bounceBackRight(Lattice& lattice)
@@ -130,9 +101,7 @@ void Boundary::bounceBackRight(Lattice& lattice)
 
     auto& f = lattice.distributions();
 
-
     int x = nx-1;
-
 
     #pragma omp parallel for
     for(int y=1; y<ny-1; ++y)
@@ -150,17 +119,12 @@ void Boundary::bounceBackRight(Lattice& lattice)
             f[lattice.index(8,x,y)];
 
     }
-
 }
-
 
 void Boundary::movingTop(Lattice& lattice)
 {
-
     auto& f = lattice.distributions();
-
     int y = ny-1;
-
 
     #pragma omp parallel for
     for(int x=1; x<nx-1; ++x)
@@ -205,7 +169,7 @@ void Boundary::movingTop(Lattice& lattice)
 
 
 //==================================================
-// Bottom-left corner
+// Angolo in basso a sx
 //==================================================
 
 void Boundary::bottomLeftCorner(Lattice& lattice)
@@ -238,7 +202,7 @@ void Boundary::bottomLeftCorner(Lattice& lattice)
 
 
 //==================================================
-// Bottom-right corner
+// Angolo in basso a dx
 //==================================================
 
 void Boundary::bottomRightCorner(Lattice& lattice)
@@ -269,9 +233,8 @@ void Boundary::bottomRightCorner(Lattice& lattice)
 }
 
 
-
 //==================================================
-// Top-left corner
+// Angolo in alto a sx
 //==================================================
 
 void Boundary::topLeftCorner(Lattice& lattice)
@@ -300,7 +263,7 @@ void Boundary::topLeftCorner(Lattice& lattice)
 
 
 //==================================================
-// Top-right corner
+// Angolo in alto a dx
 //==================================================
 
 void Boundary::topRightCorner(Lattice& lattice)
@@ -311,19 +274,15 @@ void Boundary::topRightCorner(Lattice& lattice)
     int x = nx-1;
     int y = ny-1;
 
-
     f[lattice.index(1,x,y)]
     =
     f[lattice.index(2,x,y)];
-
 
     f[lattice.index(3,x,y)]
     =
     f[lattice.index(4,x,y)];
 
-
     f[lattice.index(5,x,y)]
     =
     f[lattice.index(6,x,y)];
-
 }
