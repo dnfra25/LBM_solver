@@ -414,43 +414,39 @@ void Lattice::streaming()
 
 
     #pragma omp parallel for collapse(2)
-    for(int x = 0; x < nx; ++x)
+    for(int x=0; x<nx; ++x)
     {
-        for(int y = 0; y < ny; ++y)
+        for(int y=0; y<ny; ++y)
         {
 
-            for(int q = 0; q < Q; ++q)
+            for(int q=0; q<Q; ++q)
             {
 
-                int x_old =
+                int xs =
                     x - c[q][0];
 
-                int y_old =
+                int ys =
                     y - c[q][1];
 
 
-                if(x_old >= 0 &&
-                   x_old < nx &&
-                   y_old >= 0 &&
-                   y_old < ny)
+                if(xs >= 0 &&
+                   xs < nx &&
+                   ys >=0 &&
+                   ys < ny)
                 {
 
                     f_new[index(q,x,y)]
                     =
-                    f_post[index(q,x_old,y_old)];
+                    f_post[index(q,xs,ys)];
 
                 }
                 else
                 {
 
                     /*
-                        Nodo proveniente dall'esterno.
-                        La popolazione verrà ricostruita
-                        dalla boundary condition.
-
-                        Non copiare f_post qui:
-                        manterrebbe popolazioni spurie
-                        sui bordi.
+                     lascia vuoto.
+                     La boundary ricostruisce
+                     le popolazioni mancanti.
                     */
 
                     f_new[index(q,x,y)]
