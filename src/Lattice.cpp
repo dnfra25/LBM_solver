@@ -224,12 +224,28 @@ void Lattice::computeMacroscopic()
     << std::endl;
 }
 
-
-
             if(density>1e-14)
             {
                 ux[id]=vx/density;
                 uy[id]=vy/density;
+
+                      double vel2 =
+                  ux[id]*ux[id]
+                + uy[id]*uy[id];
+              
+              if(vel2 > 0.1)
+              {
+                  std::cout
+                  << "Large velocity at "
+                  << x << " "
+                  << y
+                  << " ux="
+                  << ux[id]
+                  << " uy="
+                  << uy[id]
+                  << std::endl;
+              }
+                            
             }
             else
             {
