@@ -12,6 +12,32 @@
 
 
 //==================================================
+// Compute TRT omega_m
+//==================================================
+
+double Cavity::computeOmegaM(double omega_p)
+{
+
+    double tau_p =
+        1.0 / omega_p;
+
+
+    double tau_m =
+        0.5
+        +
+        (3.0/16.0)
+        /
+        (tau_p - 0.5);
+
+
+    return
+        1.0 / tau_m;
+
+}
+
+
+
+//==================================================
 // Constructor
 //==================================================
 
@@ -34,7 +60,9 @@ omega_p(
     )
 ),
 
-omega_m(0.0),
+omega_m(
+    computeOmegaM(omega_p)
+),
 
 lattice(nx_,
         ny_,
@@ -47,38 +75,6 @@ boundary(nx_,
          U_lid)
 
 {
-
-    /*
-        TRT parameters
-
-        (tau_p - 0.5)(tau_m - 0.5)=Lambda
-
-        Lambda = 3/16
-    */
-
-
-    double tau_p =
-        1.0 / omega_p;
-
-
-
-    double tau_m =
-        0.5
-        +
-        (3.0/16.0)
-        /
-        (tau_p - 0.5);
-
-
-
-    omega_m =
-        1.0 / tau_m;
-
-
-
-    oldUx.resize(nx*ny,0.0);
-
-    oldUy.resize(nx*ny,0.0);
 
 }
 
@@ -267,14 +263,6 @@ bool Cavity::converged(double tolerance)
 //==================================================
 // Write horizontal centerline Ux
 //==================================================
-//
-// Ghia benchmark:
-// u velocity along horizontal
-// centerline of cavity
-//
-// y = (Ny-1)/2
-//
-//==================================================
 
 void Cavity::writeCenterlineUx(
         const std::string& filename)
@@ -330,14 +318,6 @@ void Cavity::writeCenterlineUx(
 
 //==================================================
 // Write vertical centerline Uy
-//==================================================
-//
-// Ghia benchmark:
-// v velocity along vertical
-// centerline of cavity
-//
-// x = (Nx-1)/2
-//
 //==================================================
 
 void Cavity::writeCenterlineUy(
