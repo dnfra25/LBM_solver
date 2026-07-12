@@ -6,7 +6,7 @@
 #endif
 
 //==================================================
-// Constructor
+// Constructor: gestisco il modello come una classe
 //==================================================
 
 Lattice::Lattice(int nx_,
@@ -31,7 +31,7 @@ rho0(rho0_)
     ux.resize(size, 0.0);
     uy.resize(size, 0.0);
 
-    // D2Q9 velocities
+    // Seguo questa convenzione per il modello D2Q9 per le velocità
 
     c =
     {{
@@ -50,7 +50,7 @@ rho0(rho0_)
         {{ 1,-1 }}
     }};
 
-    // D2Q9 weights
+    // D2Q9 PESI
 
     w =
     {{
@@ -69,7 +69,7 @@ rho0(rho0_)
         1.0/36.0
     }};
 
-    // Opposite directions
+    // Per gestire le direzioni sulla griglia
 
     opposite =
     {{
@@ -87,7 +87,7 @@ rho0(rho0_)
 }
 
 //==================================================
-// Initialize distributions
+// Inizializzo le distribuzioni f
 //==================================================
 
 void Lattice::initialize()
@@ -101,23 +101,18 @@ void Lattice::initialize()
 
             int id = cell(x,y);
 
-
             rho[id] = rho0;
 
             double ux0 = 0.0;
             double uy0 = 0.0;
 
-
             ux[id] = ux0;
             uy[id] = uy0;
-
-
 
             double u2 =
                 ux0*ux0
               +
                 uy0*uy0;
-
 
 
             for(int q = 0; q < Q; ++q)
@@ -127,8 +122,6 @@ void Lattice::initialize()
                     ux0*c[q][0]
                   +
                     uy0*c[q][1];
-
-
 
                 double feq =
                     rho0
@@ -145,30 +138,22 @@ void Lattice::initialize()
                         1.5*u2
                     );
 
-
-
                 f[index(q,x,y)] =
                     feq;
-
 
                 f_eq[index(q,x,y)] =
                     feq;
 
-
                 f_post[index(q,x,y)] =
                     feq;
-
             }
-
         }
     }
-
 }
 
 
-
 //==================================================
-// Compute macroscopic variables
+// Metodo che mi calcola le quantità macroscopice, p.e. densità
 //==================================================
 
 void Lattice::computeMacroscopic()
@@ -191,24 +176,6 @@ void Lattice::computeMacroscopic()
                double fq =
                     f[index(q,x,y)];
 
-            /*
-                if(!std::isfinite(fq))
-                {
-#pragma omp critical
-                    {
-                        std::cout
-                        << "BAD f at "
-                        << x << " "
-                        << y
-                        << " q="
-                        << q
-                        << " f="
-                        << fq
-                        << std::endl;
-                    }
-                }*/
-
-
                 density += fq;
 
                 vx += fq*c[q][0];
@@ -221,65 +188,11 @@ void Lattice::computeMacroscopic()
 
             int id = cell(x,y);
 
-/*
-
-            if(!std::isfinite(density) ||
-               density <= 0.0)
-            {
-
-#pragma omp critical
-                {
-                    std::cout
-                    << "BAD density at "
-                    << x << " "
-                    << y
-                    << " rho="
-                    << density
-                    << std::endl;
-                }
-
-                rho[id]=1.0;
-                ux[id]=0.0;
-                uy[id]=0.0;
-
-                continue;
-            }*/
-
-
-
             rho[id]=density;
 
 
             ux[id]=vx/density;
             uy[id]=vy/density;
-
-
-
-   /*         double vel2 =
-                ux[id]*ux[id]
-              +
-                uy[id]*uy[id];*/
-
-/*
-            if(vel2 > 1.1)
-            {
-
-#pragma omp critical
-                {
-                    std::cout
-                    << "Large velocity at "
-                    << x << " "
-                    << y
-                    << " ux="
-                    << ux[id]
-                    << " uy="
-                    << uy[id]
-                    << " rho="
-                    << rho[id]
-                    << std::endl;
-                }
-
-            }*/
 
         }
     }
@@ -289,12 +202,11 @@ void Lattice::computeMacroscopic()
 
 
 //==================================================
-// Compute equilibrium distribution
+// Calccolo le distr. all'equilibrio
 //==================================================
 
 void Lattice::computeEquilibrium()
 {
-
     #pragma omp parallel for collapse(2)
     for(int x=0;x<nx;x++)
     {
@@ -304,14 +216,10 @@ void Lattice::computeEquilibrium()
             int id =
                 cell(x,y);
 
-
-
             double u2 =
                 ux[id]*ux[id]
               +
                 uy[id]*uy[id];
-
-
 
             for(int q=0;q<Q;q++)
             {
@@ -321,8 +229,6 @@ void Lattice::computeEquilibrium()
                   +
                     uy[id]*c[q][1];
 
-
-
                 double feq =
                     1.0
                     +
@@ -331,8 +237,6 @@ void Lattice::computeEquilibrium()
                     4.5*cu*cu
                     -
                     1.5*u2;
-
-
 
                 f_eq[index(q,x,y)] =
                     rho[id]
@@ -347,12 +251,6 @@ void Lattice::computeEquilibrium()
     }
 
 }
-
-
-
-//==================================================
-// TRT collision
-//==================================================
 
 //==================================================
 // TRT collision
@@ -372,46 +270,33 @@ void Lattice::collision()
 
                 int qb = opposite[q];
 
-
                 // Process every opposite pair only once
                 if(q > qb)
                     continue;
 
-
-
                 double fq =
                     f[index(q,x,y)];
-
 
                 double fqb =
                     f[index(qb,x,y)];
 
-
-
                 double feq =
                     f_eq[index(q,x,y)];
-
-
                 double feqb =
                     f_eq[index(qb,x,y)];
-
-
-
+              
                 //----------------------------------
-                // symmetric component
+                // parte simmetrica
                 //----------------------------------
 
                 double f_plus =
                     0.5*(fq + fqb);
 
-
                 double feq_plus =
                     0.5*(feq + feqb);
 
-
-
                 //----------------------------------
-                // antisymmetric component
+                // parte antisimmetrica
                 //----------------------------------
 
                 double f_minus =
@@ -421,10 +306,8 @@ void Lattice::collision()
                 double feq_minus =
                     0.5*(feq - feqb);
 
-
-
                 //----------------------------------
-                // TRT relaxation
+                // TRT : RELAZIONE DI RILASSAMENTO
                 //----------------------------------
 
                 double f_plus_new =
@@ -433,19 +316,11 @@ void Lattice::collision()
                     omega_p*
                     (f_plus-feq_plus);
 
-
-
                 double f_minus_new =
                     f_minus
                     -
                     omega_m*
                     (f_minus-feq_minus);
-
-
-
-                //----------------------------------
-                // reconstruction
-                //----------------------------------
 
                 f_post[index(q,x,y)]
                     =
@@ -453,45 +328,18 @@ void Lattice::collision()
                     +
                     f_minus_new;
 
-                            /* double test =
-    f_post[index(q,x,y)];*/
-
-/*if(std::abs(test)>1.0 || !std::isfinite(test))
-{
-    std::cout
-    << "BAD f_post "
-    << "it?"
-    << " x=" << x
-    << " y=" << y
-    << " q=" << q
-    << " f=" << test
-    << std::endl;
-
-   // exit(1);
-}*/
-
                 f_post[index(qb,x,y)]
                     =
                     f_plus_new
                     -
                     f_minus_new;
-
-
             }
-
         }
-
     }
-
 }
 
-
-
 //==================================================
-// Streaming - pull scheme
-//==================================================
-//==================================================
-// Streaming - pull scheme
+// Streaming - fase successiva alla collisione
 //==================================================
 
 void Lattice::streaming()
@@ -518,7 +366,6 @@ void Lattice::streaming()
                 int ys =
                     y-c[q][1];
 
-
                 if(xs >= 0 &&
                    xs < nx &&
                    ys >= 0 &&
@@ -536,19 +383,16 @@ else
     =
     f_post[index(opposite[q],x,y)];
 }
-
             }
 
         }
     }
 
-
     f.swap(f_new);
-
 }
 
 //==================================================
-// Perform one LBM iteration
+// Il metodo LBM viene quindi iterato richiamando in sequenza le fasi precedenti
 //==================================================
 
 void Lattice::step()
@@ -573,7 +417,6 @@ void Lattice::setOmegaM(double value)
     omega_m = value;
 }
 
-
 //==================================================
 // Get density
 //==================================================
@@ -584,7 +427,6 @@ double Lattice::getRho(int x,int y) const
 }
 
 
-
 //==================================================
 // Get x velocity
 //==================================================
@@ -593,7 +435,6 @@ double Lattice::getUx(int x,int y) const
 {
     return ux[cell(x,y)];
 }
-
 
 
 //==================================================
