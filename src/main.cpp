@@ -137,15 +137,12 @@ int main()
 
         cavity.getLattice().computeMacroscopic();
 
-
-        std::cout
-            << "Initial lid Ux = "
-            << cavity.getLattice().getUx(
-                   test.nx/2,
-                   test.ny-2
-               )
-            << "\n";
-
+std::cout
+<< "Top wall node Ux = "
+<< cavity.getLattice().getUx(
+        test.nx/2,
+        test.ny-1)
+<< "\n";
 
 
         //------------------------------------------
