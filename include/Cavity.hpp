@@ -63,21 +63,20 @@ public:
 
     double velocityDifference();
 
-
     bool converged(double tolerance);
 
 
 
     //=========================================
-    // Ghia benchmark export
+    // Ghia benchmark output
     //=========================================
 
-    void exportCenterVelocityProfile(
+    void writeCenterlineUx(
         const std::string& filename
     );
 
 
-    void exportVerticalVelocityProfile(
+    void writeCenterlineUy(
         const std::string& filename
     );
 
