@@ -311,10 +311,27 @@ void Lattice::collision()
         for(int y = 0; y < ny; ++y)
         {
 
+            /*
+                Process only one population of each
+                opposite pair:
+
+                0 <-> 0
+                1 <-> 2
+                3 <-> 4
+                5 <-> 6
+                7 <-> 8
+            */
+
             for(int q = 0; q < Q; ++q)
             {
 
                 int qb = opposite[q];
+
+
+                // avoid processing the same pair twice
+                if(q > qb)
+                    continue;
+
 
 
                 double fq =
@@ -322,6 +339,7 @@ void Lattice::collision()
 
                 double fqb =
                     f[index(qb,x,y)];
+
 
 
                 double feq =
@@ -333,20 +351,24 @@ void Lattice::collision()
 
 
                 //----------------------------------
-                // Symmetric and antisymmetric parts
+                // Symmetric component
                 //----------------------------------
 
                 double f_plus =
                     0.5 * (fq + fqb);
 
 
-                double f_minus =
-                    0.5 * (fq - fqb);
-
-
-
                 double feq_plus =
                     0.5 * (feq + feqb);
+
+
+
+                //----------------------------------
+                // Antisymmetric component
+                //----------------------------------
+
+                double f_minus =
+                    0.5 * (fq - fqb);
 
 
                 double feq_minus =
@@ -375,12 +397,20 @@ void Lattice::collision()
 
 
                 //----------------------------------
-                // Reconstruct population q
+                // Reconstruction of both directions
                 //----------------------------------
 
-                f_post[index(q,x,y)] =
+                f_post[index(q,x,y)]
+                    =
                     f_plus_post
                     +
+                    f_minus_post;
+
+
+                f_post[index(qb,x,y)]
+                    =
+                    f_plus_post
+                    -
                     f_minus_post;
 
             }
