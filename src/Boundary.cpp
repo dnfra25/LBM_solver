@@ -163,18 +163,18 @@ void Boundary::movingTop(Lattice& lattice)
 
     auto& f = lattice.distributions();
 
-    int y = ny-1;
+    int y = ny - 1;
 
 
     #pragma omp parallel for
-    for(int x=1; x<nx-1; ++x)
+    for(int x = 1; x < nx-1; ++x)
     {
 
         double rho =
               f[lattice.index(0,x,y)]
             + f[lattice.index(1,x,y)]
             + f[lattice.index(2,x,y)]
-            + 2.0*
+            + 2.0 *
               (
                 f[lattice.index(4,x,y)]
               + f[lattice.index(6,x,y)]
@@ -182,16 +182,24 @@ void Boundary::movingTop(Lattice& lattice)
               );
 
 
-        // normal population
+        /*
+          Top moving wall
 
+          known:
+             f0 f1 f2 f4 f6 f8
+
+          unknown:
+             f3 f5 f7
+        */
+
+
+        // north
         f[lattice.index(3,x,y)]
         =
         f[lattice.index(4,x,y)];
 
 
-
-        // NE
-
+        // north-east
         f[lattice.index(5,x,y)]
         =
         f[lattice.index(6,x,y)]
@@ -203,12 +211,10 @@ void Boundary::movingTop(Lattice& lattice)
             f[lattice.index(1,x,y)]
         )
         +
-        rho*lidVelocity/3.0;
+        rho*lidVelocity/6.0;
 
 
-
-        // NW
-
+        // north-west
         f[lattice.index(7,x,y)]
         =
         f[lattice.index(8,x,y)]
@@ -220,7 +226,7 @@ void Boundary::movingTop(Lattice& lattice)
             f[lattice.index(2,x,y)]
         )
         -
-        rho*lidVelocity/3.0;
+        rho*lidVelocity/6.0;
 
     }
 
