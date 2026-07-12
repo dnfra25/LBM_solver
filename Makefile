@@ -20,10 +20,10 @@ BUILD_DIR = build
 
 
 # ==========================================
-# Source files
+# Solver sources
 # ==========================================
 
-SOURCES = \
+SOLVER_SOURCES = \
 	$(SRC_DIR)/main.cpp \
 	$(SRC_DIR)/Lattice.cpp \
 	$(SRC_DIR)/Boundary.cpp \
@@ -31,7 +31,7 @@ SOURCES = \
 
 
 
-OBJECTS = $(SOURCES:%.cpp=$(BUILD_DIR)/%.o)
+SOLVER_OBJECTS = $(SOLVER_SOURCES:%.cpp=$(BUILD_DIR)/%.o)
 
 
 
@@ -40,7 +40,25 @@ TARGET = cavity
 
 
 # ==========================================
-# Default target
+# Postprocess sources
+# ==========================================
+
+POSTPROCESS_SOURCE = \
+	$(SRC_DIR)/postprocess.cpp
+
+
+
+POSTPROCESS_OBJECT = \
+	$(BUILD_DIR)/src/postprocess.o
+
+
+
+POSTPROCESS_TARGET = postprocess
+
+
+
+# ==========================================
+# Default
 # ==========================================
 
 all: $(TARGET)
@@ -48,12 +66,22 @@ all: $(TARGET)
 
 
 # ==========================================
-# Linking
+# Solver linking
 # ==========================================
 
-$(TARGET): $(OBJECTS)
+$(TARGET): $(SOLVER_OBJECTS)
 
-	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $@
+	$(CXX) $(CXXFLAGS) $(SOLVER_OBJECTS) -o $@
+
+
+
+# ==========================================
+# Postprocess linking
+# ==========================================
+
+$(POSTPROCESS_TARGET): $(POSTPROCESS_OBJECT)
+
+	$(CXX) $(CXXFLAGS) $(POSTPROCESS_OBJECT) -o $@
 
 
 
@@ -70,12 +98,22 @@ $(BUILD_DIR)/%.o: %.cpp
 
 
 # ==========================================
-# Run
+# Run solver
 # ==========================================
 
 run: $(TARGET)
 
 	./$(TARGET)
+
+
+
+# ==========================================
+# Run postprocess
+# ==========================================
+
+post: $(POSTPROCESS_TARGET)
+
+	./$(POSTPROCESS_TARGET)
 
 
 
@@ -86,7 +124,10 @@ run: $(TARGET)
 clean:
 
 	rm -rf $(BUILD_DIR)
+
 	rm -f $(TARGET)
+
+	rm -f $(POSTPROCESS_TARGET)
 
 
 
