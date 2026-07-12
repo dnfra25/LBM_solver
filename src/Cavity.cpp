@@ -65,7 +65,7 @@ boundary(nx_,
     double tau_m =
         0.5
         +
-        (3.0/16.0)
+        (1.0/4.0)
         /
         (tau_p - 0.5);
 
