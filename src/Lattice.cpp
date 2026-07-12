@@ -1,4 +1,5 @@
 #include "Lattice.hpp"
+#include <iostream>
 #include <cmath>
 #ifdef _OPENMP
 #include <omp.h>
