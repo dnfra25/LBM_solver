@@ -303,19 +303,19 @@ int main()
 
         std::cout
             << "Center Ux = "
-            << lattice.getUx(cx,cy)/test.U
+            << lattice.getUx(cx,cy)
             << "\n";
 
 
         std::cout
             << "Center Uy = "
-            << lattice.getUy(cx,cy)/test.U
+            << lattice.getUy(cx,cy)
             << "\n";
 
 
         std::cout
             << "Top interior Ux = "
-            << lattice.getUx(cx,test.ny-2)/test.U
+            << lattice.getUx(cx,test.ny-2)
             << "\n";
 
 
