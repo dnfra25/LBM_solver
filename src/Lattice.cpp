@@ -456,7 +456,7 @@ void Lattice::collision()
                              double test =
     f_post[index(q,x,y)];
 
-if(std::abs(test)>1.0 || !std::isfinite(test))
+/*if(std::abs(test)>1.0 || !std::isfinite(test))
 {
     std::cout
     << "BAD f_post "
@@ -468,7 +468,7 @@ if(std::abs(test)>1.0 || !std::isfinite(test))
     << std::endl;
 
    // exit(1);
-}
+}*/
 
                 f_post[index(qb,x,y)]
                     =
