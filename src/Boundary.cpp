@@ -161,6 +161,9 @@ void Boundary::bounceBackRight(Lattice& lattice)
 //==================================================
 // Moving top wall - Zou He velocity BC
 //==================================================
+//==================================================
+// Moving top wall - Zou He velocity BC
+//==================================================
 void Boundary::movingTop(Lattice& lattice)
 {
 
@@ -170,24 +173,28 @@ void Boundary::movingTop(Lattice& lattice)
 
 
     #pragma omp parallel for
-    for(int x = 1; x < nx - 1; ++x)
+    for(int x = 1; x < nx-1; ++x)
     {
 
         /*
-            Unknown populations at top wall:
+            D2Q9 ordering used in Lattice.cpp:
 
-                q=4  (down)
-                q=6  (down-left)
-                q=7  (down-right)
+              5 = ( 1, 1)
+              6 = (-1,-1)
+              7 = (-1, 1)
+              8 = ( 1,-1)
 
-            Known populations:
+            Top wall:
+            unknown populations after streaming:
 
-                q=0,1,2,3,5,8
+              q=4  ( 0,-1)
+              q=6  (-1,-1)
+              q=8  ( 1,-1)
 
             Imposed velocity:
 
-                ux = lidVelocity
-                uy = 0
+              ux = lidVelocity
+              uy = 0
         */
 
 
@@ -197,37 +204,22 @@ void Boundary::movingTop(Lattice& lattice)
             + f[lattice.index(2,x,y)]
             + 2.0 *
             (
-                f[lattice.index(4,x,y)]
-              + f[lattice.index(6,x,y)]
-              + f[lattice.index(8,x,y)]
+                f[lattice.index(3,x,y)]
+              + f[lattice.index(5,x,y)]
+              + f[lattice.index(7,x,y)]
             );
 
 
-        // Normal component (bounce-back)
-        f[lattice.index(3,x,y)]
+        // q=4 opposite of q=3
+        f[lattice.index(4,x,y)]
         =
-        f[lattice.index(4,x,y)];
+        f[lattice.index(3,x,y)];
 
 
-        // Diagonal populations
-        f[lattice.index(5,x,y)]
-        =
+        // q=6 opposite of q=5
         f[lattice.index(6,x,y)]
-        +
-        0.5 *
-        (
-            f[lattice.index(2,x,y)]
-            -
-            f[lattice.index(1,x,y)]
-        )
-        +
-        rho * lidVelocity / 6.0;
-
-
-
-        f[lattice.index(7,x,y)]
         =
-        f[lattice.index(8,x,y)]
+        f[lattice.index(5,x,y)]
         +
         0.5 *
         (
@@ -238,6 +230,20 @@ void Boundary::movingTop(Lattice& lattice)
         -
         rho * lidVelocity / 6.0;
 
+
+        // q=8 opposite of q=7
+        f[lattice.index(8,x,y)]
+        =
+        f[lattice.index(7,x,y)]
+        +
+        0.5 *
+        (
+            f[lattice.index(2,x,y)]
+            -
+            f[lattice.index(1,x,y)]
+        )
+        +
+        rho * lidVelocity / 6.0;
 
     }
 
