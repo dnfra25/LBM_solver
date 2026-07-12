@@ -174,25 +174,57 @@ void Lattice::initialize()
 void Lattice::computeMacroscopic()
 {
 
-    #pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2)
     for(int x=0;x<nx;x++)
     {
         for(int y=0;y<ny;y++)
         {
 
-            double density=0.0;
+            double density = 0.0;
 
-            double vx=0.0;
+            double vx = 0.0;
 
-            double vy=0.0;
+            double vy = 0.0;
 
 
+            //--------------------------------------
+            // Check distributions before summation
+            //--------------------------------------
 
             for(int q=0;q<Q;q++)
             {
 
                 double fq =
                     f[index(q,x,y)];
+
+
+                if(!std::isfinite(fq))
+                {
+                    std::cout
+                        << "BAD f at "
+                        << "x=" << x
+                        << " y=" << y
+                        << " q=" << q
+                        << " f=" << fq
+                        << std::endl;
+
+                    std::abort();
+                }
+
+
+                if(std::abs(fq) > 10.0)
+                {
+                    std::cout
+                        << "Huge f at "
+                        << "x=" << x
+                        << " y=" << y
+                        << " q=" << q
+                        << " f=" << fq
+                        << std::endl;
+
+                    std::abort();
+                }
+
 
 
                 density += fq;
@@ -211,48 +243,90 @@ void Lattice::computeMacroscopic()
 
 
 
+            //--------------------------------------
+            // Density check
+            //--------------------------------------
+
+            if(!std::isfinite(density) ||
+               density <= 0.0)
+            {
+
+                std::cout
+                    << "BAD density at "
+                    << "x=" << x
+                    << " y=" << y
+                    << " rho=" << density
+                    << std::endl;
+
+                std::abort();
+
+            }
+
+
+
             rho[id]=density;
 
-          if(!std::isfinite(density))
-{
-    std::cout
-    << "BAD density at x="
-    << x
-    << " y="
-    << y
-    << " rho="
-    << density
-    << std::endl;
-}
 
-            if(density>1e-14)
+
+            //--------------------------------------
+            // Velocity computation
+            //--------------------------------------
+
+            ux[id] =
+                vx/density;
+
+
+            uy[id] =
+                vy/density;
+
+
+
+            //--------------------------------------
+            // Velocity checks
+            //--------------------------------------
+
+            if(!std::isfinite(ux[id]) ||
+               !std::isfinite(uy[id]))
             {
-                ux[id]=vx/density;
-                uy[id]=vy/density;
 
-                      double vel2 =
+                std::cout
+                    << "BAD velocity at "
+                    << "x=" << x
+                    << " y=" << y
+                    << " ux=" << ux[id]
+                    << " uy=" << uy[id]
+                    << std::endl;
+
+                std::abort();
+
+            }
+
+
+
+            double vel2 =
                   ux[id]*ux[id]
                 + uy[id]*uy[id];
-              
-              if(vel2 > 0.1)
-              {
-                  std::cout
-                  << "Large velocity at "
-                  << x << " "
-                  << y
-                  << " ux="
-                  << ux[id]
-                  << " uy="
-                  << uy[id]
-                  << std::endl;
-              }
-                            
-            }
-            else
+
+
+
+            if(vel2 > 1.0)
             {
-                ux[id]=0.0;
-                uy[id]=0.0;
+
+                std::cout
+                    << "UNSTABLE velocity at "
+                    << "x=" << x
+                    << " y=" << y
+                    << " ux=" << ux[id]
+                    << " uy=" << uy[id]
+                    << " |u|="
+                    << std::sqrt(vel2)
+                    << std::endl;
+
+
+                std::abort();
+
             }
+
 
         }
     }
