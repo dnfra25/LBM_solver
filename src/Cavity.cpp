@@ -104,7 +104,7 @@ void Cavity::step()
 
     boundary.apply(lattice);
 
-    lattice.computeMacroscopic();
+   // lattice.computeMacroscopic();
 
 }
 
