@@ -229,7 +229,10 @@ double Cavity::velocityDifference()
             double uy =
                 lattice.getUy(x,y);
 
-
+if(!std::isfinite(ux) || !std::isfinite(uy))
+{
+    return 1.0e30;
+}
 
             double dux =
                 ux-oldUx[id];
