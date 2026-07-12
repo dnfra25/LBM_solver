@@ -162,7 +162,7 @@ void Boundary::movingTop(Lattice& lattice)
     int y = ny-1;
 
 
-    #pragma omp parallel for
+#pragma omp parallel for
     for(int x=1; x<nx-1; ++x)
     {
 
@@ -172,45 +172,31 @@ void Boundary::movingTop(Lattice& lattice)
             + f[lattice.index(2,x,y)]
             + 2.0 *
             (
-              f[lattice.index(4,x,y)]
-            + f[lattice.index(6,x,y)]
-            + f[lattice.index(8,x,y)]
+              f[lattice.index(3,x,y)]
+            + f[lattice.index(5,x,y)]
+            + f[lattice.index(7,x,y)]
             );
 
 
-        // north
+        // N
         f[lattice.index(3,x,y)]
         =
         f[lattice.index(4,x,y)];
 
 
-        // north-east
+        // NE
         f[lattice.index(5,x,y)]
         =
         f[lattice.index(6,x,y)]
-        +
-        0.5 *
-        (
-            f[lattice.index(2,x,y)]
-          -
-            f[lattice.index(1,x,y)]
-        )
         +
         rho*lidVelocity/6.0;
 
 
 
-        // north-west
+        // NW
         f[lattice.index(7,x,y)]
         =
         f[lattice.index(8,x,y)]
-        -
-        0.5 *
-        (
-            f[lattice.index(2,x,y)]
-          -
-            f[lattice.index(1,x,y)]
-        )
         -
         rho*lidVelocity/6.0;
 
