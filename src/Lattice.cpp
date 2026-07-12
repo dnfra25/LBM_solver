@@ -188,10 +188,10 @@ void Lattice::computeMacroscopic()
             for(int q=0; q<Q; q++)
             {
 
-                double fq =
+               double fq =
                     f[index(q,x,y)];
 
-
+            /*
                 if(!std::isfinite(fq))
                 {
 #pragma omp critical
@@ -206,7 +206,7 @@ void Lattice::computeMacroscopic()
                         << fq
                         << std::endl;
                     }
-                }
+                }*/
 
 
                 density += fq;
@@ -221,7 +221,7 @@ void Lattice::computeMacroscopic()
 
             int id = cell(x,y);
 
-
+/*
 
             if(!std::isfinite(density) ||
                density <= 0.0)
@@ -243,7 +243,7 @@ void Lattice::computeMacroscopic()
                 uy[id]=0.0;
 
                 continue;
-            }
+            }*/
 
 
 
