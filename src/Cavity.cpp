@@ -3,9 +3,22 @@
 #include <cmath>
 #include <algorithm>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+
+
+static double computeOmegaM(double viscosity)
+{
+
+    double tau_p =
+        0.5 + 3.0*viscosity;
+
+
+    double tau_m =
+        0.25/(tau_p-0.5)+0.5;
+
+
+    return 1.0/tau_m;
+
+}
 
 
 
@@ -23,64 +36,44 @@ ny(ny_),
 Re(Reynolds_),
 U_lid(lidVelocity_),
 
-viscosity(U_lid * (nx_ - 1) / Re),
+viscosity(
+    U_lid*(nx_-1)/Re
+),
 
 omega_p(
-    1.0 /
+    1.0/
     (
-        0.5 + 3.0*viscosity
+        0.5+3.0*viscosity
     )
 ),
 
-omega_m(0.0),
+omega_m(
+    computeOmegaM(viscosity)
+),
 
-lattice(nx_,
-        ny_,
-        omega_p,
-        omega_m,
-        1.0),
+lattice(
+    nx_,
+    ny_,
+    omega_p,
+    omega_m,
+    1.0
+),
 
-boundary(nx_,
-         ny_,
-         U_lid)
+boundary(
+    nx_,
+    ny_,
+    U_lid
+)
 
 {
 
-    /*
-        TRT parameters
-
-        (tau_p - 0.5)(tau_m - 0.5)=Lambda
-
-        Lambda = 3/16
-    */
-
-    double tau_p =
-        1.0 / omega_p;
-
-
-    double tau_m =
-        0.5
-        +
-        (3.0/16.0)
-        /
-        (tau_p - 0.5);
-
-
-    omega_m =
-        1.0 / tau_m;
-
-
-
     oldUx.resize(nx*ny,0.0);
-
     oldUy.resize(nx*ny,0.0);
 
 }
 
 
 
-//==================================================
-// Initialization
 //==================================================
 
 void Cavity::initialize()
@@ -89,52 +82,37 @@ void Cavity::initialize()
     lattice.initialize();
 
 
-    std::fill(oldUx.begin(),
-              oldUx.end(),
-              0.0);
+    std::fill(
+        oldUx.begin(),
+        oldUx.end(),
+        0.0
+    );
 
 
-    std::fill(oldUy.begin(),
-              oldUy.end(),
-              0.0);
+    std::fill(
+        oldUy.begin(),
+        oldUy.end(),
+        0.0
+    );
 
 }
 
 
 
-//==================================================
-// One simulation step
 //==================================================
 
 void Cavity::step()
 {
 
-    /*
-        LBM cycle:
-
-        1) macroscopic variables
-        2) equilibrium
-        3) TRT collision
-        4) streaming
-        5) boundary reconstruction
-        6) update macroscopic variables
-    */
-
-
     lattice.computeMacroscopic();
-
 
     lattice.computeEquilibrium();
 
-
     lattice.collision();
-
 
     lattice.streaming();
 
-
     boundary.apply(lattice);
-
 
     lattice.computeMacroscopic();
 
@@ -142,59 +120,46 @@ void Cavity::step()
 
 
 
-//==================================================
-// Apply boundary only
 //==================================================
 
 void Cavity::applyBoundary()
 {
-
     boundary.apply(lattice);
-
 }
 
 
 
-//==================================================
-// Access lattice
 //==================================================
 
 Lattice& Cavity::getLattice()
 {
-
     return lattice;
-
 }
 
 
 
-//==================================================
-// Velocity difference
 //==================================================
 
 double Cavity::velocityDifference()
 {
 
-    double num = 0.0;
+    double num=0.0;
 
-    double den = 0.0;
+    double den=0.0;
 
 
 
-    #pragma omp parallel for collapse(2) reduction(+:num,den)
+#pragma omp parallel for collapse(2) reduction(+:num,den)
     for(int x=0;x<nx;x++)
     {
         for(int y=0;y<ny;y++)
         {
 
-            int id =
-                x*ny+y;
-
+            int id=x*ny+y;
 
 
             double ux =
                 lattice.getUx(x,y);
-
 
             double uy =
                 lattice.getUy(x,y);
@@ -202,24 +167,20 @@ double Cavity::velocityDifference()
 
 
             double dux =
-                ux - oldUx[id];
-
+                ux-oldUx[id];
 
             double duy =
-                uy - oldUy[id];
+                uy-oldUy[id];
 
 
 
             num +=
-                dux*dux
-              +
+                dux*dux+
                 duy*duy;
 
 
-
             den +=
-                ux*ux
-              +
+                ux*ux+
                 uy*uy;
 
 
@@ -232,26 +193,15 @@ double Cavity::velocityDifference()
     }
 
 
-
-    return
-        std::sqrt(
-            num/(den+1e-30)
-        );
+    return sqrt(num/(den+1e-30));
 
 }
 
 
 
-//==================================================
-// Convergence test
-//==================================================
-
 bool Cavity::converged(double tolerance)
 {
 
-    return
-        velocityDifference()
-        <
-        tolerance;
+    return velocityDifference()<tolerance;
 
 }
