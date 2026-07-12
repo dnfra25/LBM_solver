@@ -233,7 +233,8 @@ bool Cavity::converged(double tolerance)
 }
 
 //==================================================
-// Focus su vertical centerline Ux -> profilo u(y) di Ghia
+// Focus su vertical centerline Ux -> Ghia
+// u_x(x=0.5,y)
 //==================================================
 
 void Cavity::writeCenterlineUx(
@@ -246,7 +247,7 @@ void Cavity::writeCenterlineUx(
     file << "# y ux\n";
 
 
-    // linea verticale centrale x = 0.5
+    // centro della cavità in x
     int x =
         (nx-1)/2;
 
@@ -275,10 +276,14 @@ void Cavity::writeCenterlineUx(
 
 
     file.close();
+
 }
 
+
+
 //==================================================
-// Focus su horizontal centerline Uy -> profilo v(x) di Ghia
+// Focus su horizontal centerline Uy -> Ghia
+// u_y(x,y=0.5)
 //==================================================
 
 void Cavity::writeCenterlineUy(
@@ -287,9 +292,11 @@ void Cavity::writeCenterlineUy(
 
     std::ofstream file(filename);
 
+
     file << "# x uy\n";
 
 
+    // centro della cavità in y
     int y =
         (ny-1)/2;
 
@@ -299,7 +306,7 @@ void Cavity::writeCenterlineUy(
         << std::setprecision(12);
 
 
-    for(int x=0;x<nx;x++)
+    for(int x=0; x<nx; x++)
     {
 
         double X =
@@ -318,4 +325,5 @@ void Cavity::writeCenterlineUy(
 
 
     file.close();
+
 }
