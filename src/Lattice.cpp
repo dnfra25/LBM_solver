@@ -463,11 +463,9 @@ void Lattice::streaming()
 }
 else
 {
-
     f_new[index(q,x,y)]
     =
-    f[index(q,x,y)];
-
+    f_post[index(opposite[q],x,y)];
 }
 
 
