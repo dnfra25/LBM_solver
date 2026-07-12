@@ -159,16 +159,59 @@ void Boundary::bounceBackRight(Lattice& lattice)
 // Moving top wall - Zou He velocity BC
 //==================================================
 
-Final result
-Iterations: 20000
-Center Ux = -0.00678661981209
-Center Uy = 0.000702290619878
-Top interior Ux = 0.0325627450725
-Bottom interior Ux = -0.000108118490101
-Time = 84.297157804 s
+void Boundary::movingTop(Lattice& lattice)
+{
 
-All tests completed
+    auto& f = lattice.distributions();
 
+
+    int y = ny-1;
+
+
+    #pragma omp parallel for
+    for(int x=1; x<nx-1; ++x)
+    {
+
+        double rho =
+              f[lattice.index(0,x,y)]
+            + f[lattice.index(1,x,y)]
+            + f[lattice.index(2,x,y)]
+            + 2.0*
+            (
+              f[lattice.index(4,x,y)]
+            + f[lattice.index(6,x,y)]
+            + f[lattice.index(7,x,y)]
+            );
+
+
+
+        // north
+        f[lattice.index(3,x,y)]
+        =
+        f[lattice.index(4,x,y)];
+
+
+
+        // north-east
+        f[lattice.index(5,x,y)]
+        =
+        f[lattice.index(7,x,y)]
+        +
+        (rho*lidVelocity)/6.0;
+
+
+
+        // north-west
+        f[lattice.index(8,x,y)]
+        =
+        f[lattice.index(6,x,y)]
+        -
+        (rho*lidVelocity)/6.0;
+
+
+    }
+
+}
 
 
 //==================================================
