@@ -40,12 +40,21 @@ void Boundary::apply(Lattice& lattice)
 
     movingTop(lattice);
 
+
+    bottomLeftCorner(lattice);
+
+    bottomRightCorner(lattice);
+
+    topLeftCorner(lattice);
+
+    topRightCorner(lattice);
+
 }
 
 
 
 //==================================================
-// Bottom wall - no slip bounce back
+// Bottom wall
 //==================================================
 
 void Boundary::bounceBackBottom(Lattice& lattice)
@@ -54,12 +63,12 @@ void Boundary::bounceBackBottom(Lattice& lattice)
     auto& f = lattice.distributions();
 
 
+    int y = 0;
+
+
     #pragma omp parallel for
-    for(int x=0;x<nx;x++)
+    for(int x=1; x<nx-1; ++x)
     {
-
-        int y=0;
-
 
         f[lattice.index(3,x,y)] =
             f[lattice.index(4,x,y)];
@@ -79,7 +88,7 @@ void Boundary::bounceBackBottom(Lattice& lattice)
 
 
 //==================================================
-// Left wall - no slip bounce back
+// Left wall
 //==================================================
 
 void Boundary::bounceBackLeft(Lattice& lattice)
@@ -88,12 +97,12 @@ void Boundary::bounceBackLeft(Lattice& lattice)
     auto& f = lattice.distributions();
 
 
+    int x = 0;
+
+
     #pragma omp parallel for
-    for(int y=0;y<ny;y++)
+    for(int y=1; y<ny-1; ++y)
     {
-
-        int x=0;
-
 
         f[lattice.index(1,x,y)] =
             f[lattice.index(2,x,y)];
@@ -113,7 +122,7 @@ void Boundary::bounceBackLeft(Lattice& lattice)
 
 
 //==================================================
-// Right wall - no slip bounce back
+// Right wall
 //==================================================
 
 void Boundary::bounceBackRight(Lattice& lattice)
@@ -122,12 +131,12 @@ void Boundary::bounceBackRight(Lattice& lattice)
     auto& f = lattice.distributions();
 
 
+    int x = nx-1;
+
+
     #pragma omp parallel for
-    for(int y=0;y<ny;y++)
+    for(int y=1; y<ny-1; ++y)
     {
-
-        int x=nx-1;
-
 
         f[lattice.index(2,x,y)] =
             f[lattice.index(1,x,y)];
@@ -147,11 +156,7 @@ void Boundary::bounceBackRight(Lattice& lattice)
 
 
 //==================================================
-// Moving top lid - Zou He velocity boundary
-//==================================================
-
-//==================================================
-// Moving lid - Zou-He velocity boundary
+// Moving top wall - Zou He velocity BC
 //==================================================
 
 void Boundary::movingTop(Lattice& lattice)
@@ -160,33 +165,12 @@ void Boundary::movingTop(Lattice& lattice)
     auto& f = lattice.distributions();
 
 
-    int y = ny - 1;
+    int y = ny-1;
 
 
     #pragma omp parallel for
     for(int x=1; x<nx-1; ++x)
     {
-
-        /*
-            Top wall:
-
-            known:
-                f0
-                f1
-                f2
-                f4
-                f6
-                f8
-
-            unknown:
-                f3
-                f5
-                f7
-
-            ux = lidVelocity
-            uy = 0
-        */
-
 
         double rho =
               f[lattice.index(0,x,y)]
@@ -194,49 +178,178 @@ void Boundary::movingTop(Lattice& lattice)
             + f[lattice.index(2,x,y)]
             + 2.0 *
               (
-                 f[lattice.index(4,x,y)]
-               + f[lattice.index(6,x,y)]
-               + f[lattice.index(8,x,y)]
+                f[lattice.index(3,x,y)]
+              + f[lattice.index(5,x,y)]
+              + f[lattice.index(7,x,y)]
               );
 
 
-        // north population
-        f[lattice.index(3,x,y)]
+
+        // south population
+
+        f[lattice.index(4,x,y)]
         =
-        f[lattice.index(4,x,y)];
+        f[lattice.index(3,x,y)];
 
 
-        // north-east
-        f[lattice.index(5,x,y)]
+
+        // south-east
+
+        f[lattice.index(8,x,y)]
         =
-        f[lattice.index(6,x,y)]
-        +
-        0.5*
+        f[lattice.index(7,x,y)]
+        -
+        0.5 *
         (
-            f[lattice.index(2,x,y)]
-          -
             f[lattice.index(1,x,y)]
+          -
+            f[lattice.index(2,x,y)]
         )
         +
-        (rho*lidVelocity)/6.0;
+        rho*lidVelocity/6.0;
 
 
 
-        // north-west
-        f[lattice.index(7,x,y)]
+        // south-west
+
+        f[lattice.index(6,x,y)]
         =
-        f[lattice.index(8,x,y)]
+        f[lattice.index(5,x,y)]
         +
-        0.5*
+        0.5 *
         (
             f[lattice.index(1,x,y)]
           -
             f[lattice.index(2,x,y)]
         )
         -
-        (rho*lidVelocity)/6.0;
+        rho*lidVelocity/6.0;
 
 
     }
+
+}
+
+
+
+//==================================================
+// Bottom-left corner
+//==================================================
+
+void Boundary::bottomLeftCorner(Lattice& lattice)
+{
+
+    auto& f = lattice.distributions();
+
+
+    int x=0;
+    int y=0;
+
+
+    f[lattice.index(1,x,y)] =
+        f[lattice.index(2,x,y)];
+
+
+    f[lattice.index(3,x,y)] =
+        f[lattice.index(4,x,y)];
+
+
+    f[lattice.index(5,x,y)] =
+        f[lattice.index(7,x,y)];
+
+
+    f[lattice.index(8,x,y)] =
+        f[lattice.index(6,x,y)];
+
+}
+
+
+
+//==================================================
+// Bottom-right corner
+//==================================================
+
+void Boundary::bottomRightCorner(Lattice& lattice)
+{
+
+    auto& f = lattice.distributions();
+
+
+    int x=nx-1;
+    int y=0;
+
+
+    f[lattice.index(2,x,y)] =
+        f[lattice.index(1,x,y)];
+
+
+    f[lattice.index(3,x,y)] =
+        f[lattice.index(4,x,y)];
+
+
+    f[lattice.index(6,x,y)] =
+        f[lattice.index(8,x,y)];
+
+
+    f[lattice.index(7,x,y)] =
+        f[lattice.index(5,x,y)];
+
+}
+
+
+
+//==================================================
+// Top-left corner
+//==================================================
+
+void Boundary::topLeftCorner(Lattice& lattice)
+{
+
+    auto& f = lattice.distributions();
+
+
+    int x=0;
+    int y=ny-1;
+
+
+    f[lattice.index(1,x,y)] =
+        f[lattice.index(2,x,y)];
+
+
+    f[lattice.index(4,x,y)] =
+        f[lattice.index(3,x,y)];
+
+
+    f[lattice.index(8,x,y)] =
+        f[lattice.index(7,x,y)];
+
+}
+
+
+
+//==================================================
+// Top-right corner
+//==================================================
+
+void Boundary::topRightCorner(Lattice& lattice)
+{
+
+    auto& f = lattice.distributions();
+
+
+    int x=nx-1;
+    int y=ny-1;
+
+
+    f[lattice.index(2,x,y)] =
+        f[lattice.index(1,x,y)];
+
+
+    f[lattice.index(4,x,y)] =
+        f[lattice.index(3,x,y)];
+
+
+    f[lattice.index(6,x,y)] =
+        f[lattice.index(5,x,y)];
 
 }
