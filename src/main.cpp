@@ -12,6 +12,7 @@
 #endif
 
 
+
 struct TestCase
 {
     int nx;
@@ -29,6 +30,7 @@ struct TestCase
 int main()
 {
 
+
 #ifdef _OPENMP
 
     std::cout
@@ -41,27 +43,18 @@ int main()
 
 
     //----------------------------------------------
-    // Test cases
+    // Ghia benchmark test cases
     //----------------------------------------------
 
     std::vector<TestCase> tests =
     {
 
         {
-            65,
-            65,
-            100.0,
-            0.1,
-            "test_1_Re100_65"
-        },
-
-
-        {
             129,
             129,
             100.0,
             0.1,
-            "test_2_Re100_129"
+            "Re100"
         },
 
 
@@ -70,44 +63,85 @@ int main()
             129,
             400.0,
             0.1,
-            "test_3_Re400_129"
+            "Re400"
         },
 
 
         {
-            257,
-            257,
-            100.0,
+            129,
+            129,
+            1000.0,
             0.1,
-            "test_4_Re100_257"
+            "Re1000"
+        },
+
+
+        {
+            129,
+            129,
+            3200.0,
+            0.1,
+            "Re3200"
+        },
+
+
+        {
+            129,
+            129,
+            5000.0,
+            0.1,
+            "Re5000"
+        },
+
+
+        {
+            129,
+            129,
+            7500.0,
+            0.1,
+            "Re7500"
+        },
+
+
+        {
+            129,
+            129,
+            10000.0,
+            0.1,
+            "Re10000"
         }
 
     };
 
 
 
+
     //----------------------------------------------
-    // Parameters
+    // Simulation parameters
     //----------------------------------------------
 
-    const int maxIterations = 20000;
+    const int maxIterations = 100000;
 
     const double tolerance = 1e-8;
 
 
 
+
     //----------------------------------------------
-    // Loop over tests
+    // Run simulations
     //----------------------------------------------
 
     int testNumber = 1;
 
 
+
     for(auto& test : tests)
     {
 
+
         std::cout
             << "\n=====================\n";
+
 
         std::cout
             << "Running "
@@ -116,7 +150,9 @@ int main()
 
 
 
-        Cavity cavity(
+
+        Cavity cavity
+        (
             test.nx,
             test.ny,
             test.Re,
@@ -125,38 +161,56 @@ int main()
 
 
 
+
+        //------------------------------------------
+        // Initialization
+        //------------------------------------------
+
         cavity.initialize();
 
 
 
+
         //------------------------------------------
-        // Check boundary initialization
+        // Check top boundary
         //------------------------------------------
 
         cavity.applyBoundary();
 
-        cavity.getLattice().computeMacroscopic();
+        cavity.getLattice()
+               .computeMacroscopic();
 
-std::cout
-<< "Top wall node Ux = "
-<< cavity.getLattice().getUx(
-        test.nx/2,
-        test.ny-1)
-<< "\n";
+
+
+        std::cout
+            << "Initial lid Ux = "
+            << cavity.getLattice()
+                    .getUx(
+                        test.nx/2,
+                        test.ny-1
+                    )
+            << "\n";
+
+
 
 
         //------------------------------------------
-        // Reset initialization
+        // Reset
         //------------------------------------------
 
         cavity.initialize();
 
 
 
+
+        //------------------------------------------
+        // Convergence file
+        //------------------------------------------
+
         std::string filename =
-            "convergence_test_"
+            "convergence_Re"
             +
-            std::to_string(testNumber)
+            std::to_string((int)test.Re)
             +
             ".dat";
 
@@ -165,13 +219,20 @@ std::cout
         std::ofstream file(filename);
 
 
+
         file
             << "# iteration error\n";
 
 
 
+
+        //------------------------------------------
+        // Timer
+        //------------------------------------------
+
         auto start =
             std::chrono::high_resolution_clock::now();
+
 
 
 
@@ -179,8 +240,13 @@ std::cout
 
 
 
-        for(iteration = 0;
-            iteration < maxIterations;
+
+        //------------------------------------------
+        // Main LBM loop
+        //------------------------------------------
+
+        for(iteration=0;
+            iteration<maxIterations;
             iteration++)
         {
 
@@ -189,8 +255,10 @@ std::cout
 
 
 
-            if(iteration % 50 == 0 && iteration > 0)
+            if(iteration % 100 == 0 &&
+               iteration > 0)
             {
+
 
                 double error =
                     cavity.velocityDifference();
@@ -215,11 +283,13 @@ std::cout
 
 
 
+
                 if(error < tolerance)
                 {
 
                     std::cout
                         << "Converged\n";
+
 
                     break;
 
@@ -227,7 +297,9 @@ std::cout
 
             }
 
+
         }
+
 
 
 
@@ -244,8 +316,49 @@ std::cout
 
 
 
+        file.close();
+
+
+
+
         //------------------------------------------
-        // Velocity diagnostics
+        // Export Ghia profiles
+        //------------------------------------------
+
+        std::string ux_file =
+            "Ux_center_Re"
+            +
+            std::to_string((int)test.Re)
+            +
+            ".dat";
+
+
+
+        std::string uy_file =
+            "Uy_center_Re"
+            +
+            std::to_string((int)test.Re)
+            +
+            ".dat";
+
+
+
+        cavity.exportCenterVelocityProfile(
+            ux_file
+        );
+
+
+
+        cavity.exportVerticalVelocityProfile(
+            uy_file
+        );
+
+
+
+
+
+        //------------------------------------------
+        // Diagnostics
         //------------------------------------------
 
         Lattice& lattice =
@@ -253,9 +366,12 @@ std::cout
 
 
 
-        int cx = test.nx/2;
+        int cx =
+            test.nx/2;
 
-        int cy = test.ny/2;
+
+        int cy =
+            test.ny/2;
 
 
 
@@ -284,8 +400,10 @@ std::cout
 
 
 
+
         std::cout
             << "\nFinal result\n";
+
 
 
         std::cout
@@ -294,8 +412,10 @@ std::cout
             << "\n";
 
 
+
         std::cout
             << std::setprecision(12);
+
 
 
         std::cout
@@ -304,10 +424,12 @@ std::cout
             << "\n";
 
 
+
         std::cout
             << "Center Uy = "
             << centerUy
             << "\n";
+
 
 
         std::cout
@@ -316,10 +438,12 @@ std::cout
             << "\n";
 
 
+
         std::cout
             << "Bottom interior Ux = "
             << bottomUx
             << "\n";
+
 
 
         std::cout
@@ -329,18 +453,16 @@ std::cout
 
 
 
-        file.close();
-
-
-
         testNumber++;
 
     }
 
 
 
+
     std::cout
-        << "\nAll tests completed\n";
+        << "\nAll Ghia benchmark tests completed\n";
+
 
 
     return 0;
