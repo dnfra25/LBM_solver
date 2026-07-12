@@ -503,17 +503,12 @@ void Lattice::streaming()
                     f_post[index(q,xs,ys)];
 
                 }
-                else
-                {
-
-                    // niente bounce-back qui
-                    // il boundary lo gestisce Boundary.cpp
-
-                    f_new[index(q,x,y)]
-                    =
-                    f_post[index(q,x,y)];
-
-                }
+else
+{
+    f_new[index(q,x,y)]
+        =
+    f_post[index(q,x,y)];
+}
 
             }
 
