@@ -121,50 +121,66 @@ void Boundary::bounceBackRight(Lattice& lattice)
     }
 }
 
+// Gestione del coperchio
+
 void Boundary::movingTop(Lattice& lattice)
 {
     auto& f = lattice.distributions();
-    int y = ny-1;
+
+    int y = ny - 1;
+
 
     #pragma omp parallel for
-    for(int x=1; x<nx-1; ++x)
+    for(int x = 1; x < nx-1; ++x)
     {
 
+        // densità al bordo superiore
         double rho =
               f[lattice.index(0,x,y)]
             + f[lattice.index(1,x,y)]
             + f[lattice.index(2,x,y)]
             + 2.0 *
             (
-              f[lattice.index(4,x,y)]
-            + f[lattice.index(6,x,y)]
-            + f[lattice.index(8,x,y)]
+              f[lattice.index(3,x,y)]
+            + f[lattice.index(5,x,y)]
+            + f[lattice.index(7,x,y)]
             );
 
 
-        // North
-        f[lattice.index(3,x,y)]
-        =
-        f[lattice.index(4,x,y)];
+        /*
+         * Lid che si muove verso +x
+         *
+         * Direzioni mancanti dopo streaming:
+         *
+         * q=4 : S
+         * q=6 : SW
+         * q=8 : SE
+         *
+         */
 
 
-        // North-East
-        f[lattice.index(5,x,y)]
+        // South
+        f[lattice.index(4,x,y)]
         =
+        f[lattice.index(3,x,y)];
+
+
+        // South-West
         f[lattice.index(6,x,y)]
-        +
-        rho*lidVelocity/6.0;
-
-
-        // North-West
-        f[lattice.index(7,x,y)]
         =
-        f[lattice.index(8,x,y)]
+        f[lattice.index(5,x,y)]
         -
         rho*lidVelocity/6.0;
 
-    }
 
+        // South-East
+        f[lattice.index(8,x,y)]
+        =
+        f[lattice.index(7,x,y)]
+        +
+        rho*lidVelocity/6.0;
+
+    }
 }
 
 
