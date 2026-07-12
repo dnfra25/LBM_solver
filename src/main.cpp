@@ -1,5 +1,4 @@
 #include "Cavity.hpp"
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -11,21 +10,15 @@
 #endif
 
 
-
 struct TestCase
 {
     int nx;
     int ny;
 
     double Re;
-
     double U;
-
     std::string name;
 };
-
-
-
 
 //==================================================
 // Main
@@ -43,10 +36,9 @@ int main()
 
 #endif
 
-
-
     //------------------------------------------------
-    // Ghia benchmark cases
+    // Ghia benchmark cases -> Faccio dei test allo scopo di confrontarmi con Ghia
+    // ogni run prende in input i dati per la griglia, RE, U_LID, e un nome da dare al test
     //------------------------------------------------
 
     std::vector<TestCase> tests =
@@ -101,7 +93,6 @@ int main()
             "Re7500"
         },
 
-
         {
             129,
             129,
@@ -112,10 +103,8 @@ int main()
 
     };
 
-
-
     //------------------------------------------------
-    // Simulation parameters
+    // Parameetri di controllo
     //------------------------------------------------
 
     const int maxIterations =
@@ -128,7 +117,7 @@ int main()
 
 
     //------------------------------------------------
-    // Run cases
+    // Run cases: stampo output parlanti
     //------------------------------------------------
 
     for(auto& test : tests)
@@ -144,10 +133,8 @@ int main()
             << test.name
             << "\n";
 
-
-
         //------------------------------------------------
-        // Create cavity
+        // Create cavity: gestisco FISICAMENTE la cavità 2d
         //------------------------------------------------
 
         Cavity cavity(
@@ -157,49 +144,34 @@ int main()
             test.U
         );
 
-
-
         cavity.initialize();
 
-
-
         //------------------------------------------------
-        // Time measurement
+        // Time measurement: così ho le tempistiche
         //------------------------------------------------
 
         auto start =
             std::chrono::high_resolution_clock::now();
 
-
-
         //------------------------------------------------
-        // LBM loop
+        // LBM loop: gestisco i loop del modello
         //------------------------------------------------
 
         int iteration;
-
-
         double error = 1.0;
-
-
 
         for(iteration=0;
             iteration<maxIterations;
             iteration++)
         {
 
-
             cavity.step();
-
-
 
             if(iteration % 100 == 0)
             {
 
                 error =
                     cavity.velocityDifference();
-
-
 
                 std::cout
                     << "it = "
@@ -209,150 +181,109 @@ int main()
                     << error
                     << "\n";
 
-
-
                 if(error < tolerance)
                 {
 
                     std::cout
                         << "Converged\n";
-
-
                     break;
-
                 }
-
             }
-
-
         }
 
 
 
         //------------------------------------------------
-        // Timing
+        // Timing: formatto l'orario
         //------------------------------------------------
 
         auto end =
             std::chrono::high_resolution_clock::now();
-
-
-
         double time =
             std::chrono::duration<double>
             (end-start)
             .count();
 
 
-
         //------------------------------------------------
-        // Output Ghia profiles
+        // Output Ghia profiles: stampo i file per i risultati
         //------------------------------------------------
 
 
         std::string uxFile =
             "Ux_" + test.name + ".dat";
 
-
         std::string uyFile =
             "Uy_" + test.name + ".dat";
-
-
 
         cavity.writeCenterlineUx(
             uxFile
         );
 
-
         cavity.writeCenterlineUy(
             uyFile
         );
 
-
-
         //------------------------------------------------
-        // Diagnostics
+        // Diagnostics: stampo info utili per l'output a video
         //------------------------------------------------
 
         Lattice& lattice =
             cavity.getLattice();
 
-
-
         int cx =
             test.nx/2;
-
 
         int cy =
             test.ny/2;
 
-
-
         std::cout
             << "\nFinal diagnostics\n";
 
-
         std::cout
             << std::setprecision(12);
-
-
 
         std::cout
             << "Center Ux = "
             << lattice.getUx(cx,cy)
             << "\n";
 
-
         std::cout
             << "Center Uy = "
             << lattice.getUy(cx,cy)
             << "\n";
-
 
         std::cout
             << "Top interior Ux = "
             << lattice.getUx(cx,test.ny-2)
             << "\n";
 
-
         std::cout
             << "Iterations = "
             << iteration
             << "\n";
 
-
         std::cout
             << "Time = "
             << time
             << " s\n";
-
-
-
         std::cout
             << "Written:\n";
-
-
         std::cout
             << "  "
             << uxFile
             << "\n";
-
 
         std::cout
             << "  "
             << uyFile
             << "\n";
 
-
     }
-
 
 
     std::cout
         << "\nAll Ghia benchmark cases completed\n";
 
-
-
     return 0;
-
 }
