@@ -425,6 +425,10 @@ void Lattice::collision()
 //==================================================
 // Streaming - pull scheme
 //==================================================
+//==================================================
+// Streaming - pull scheme
+//==================================================
+
 void Lattice::streaming()
 {
 
@@ -435,12 +439,12 @@ void Lattice::streaming()
 
 
     #pragma omp parallel for collapse(2)
-    for(int x=0; x<nx; ++x)
+    for(int x = 0; x < nx; ++x)
     {
-        for(int y=0; y<ny; ++y)
+        for(int y = 0; y < ny; ++y)
         {
 
-            for(int q=0; q<Q; ++q)
+            for(int q = 0; q < Q; ++q)
             {
 
                 int x_old =
@@ -450,9 +454,9 @@ void Lattice::streaming()
                     y - c[q][1];
 
 
-                if(x_old >=0 &&
+                if(x_old >= 0 &&
                    x_old < nx &&
-                   y_old >=0 &&
+                   y_old >= 0 &&
                    y_old < ny)
                 {
 
@@ -463,14 +467,21 @@ void Lattice::streaming()
                 }
                 else
                 {
+
                     /*
-                     boundary populations
-                     are reconstructed
-                     later by Boundary
+                        Nodo proveniente dall'esterno.
+                        La popolazione verrà ricostruita
+                        dalla boundary condition.
+
+                        Non copiare f_post qui:
+                        manterrebbe popolazioni spurie
+                        sui bordi.
                     */
+
                     f_new[index(q,x,y)]
                     =
-                    f_post[index(q,x,y)];
+                    0.0;
+
                 }
 
             }
