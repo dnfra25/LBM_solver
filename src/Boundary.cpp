@@ -171,8 +171,7 @@ void Boundary::movingTop(Lattice& lattice)
               f[lattice.index(0,x,y)]
             + f[lattice.index(1,x,y)]
             + f[lattice.index(2,x,y)]
-            +
-            2.0 *
+            + 2.0 *
             (
                 f[lattice.index(3,x,y)]
               + f[lattice.index(6,x,y)]
@@ -180,8 +179,8 @@ void Boundary::movingTop(Lattice& lattice)
             );
 
 
-        // Zou-He moving lid:
-        // ux = lidVelocity
+        // Zou-He moving lid
+        // ux = U_lid
         // uy = 0
 
 
@@ -196,15 +195,7 @@ void Boundary::movingTop(Lattice& lattice)
         =
         f[lattice.index(7,x,y)]
         +
-        0.5 *
-        (
-            f[lattice.index(2,x,y)]
-           -
-            f[lattice.index(1,x,y)]
-        )
-        +
-        rho*lidVelocity/6.0;
-
+        (1.0/6.0)*rho*lidVelocity;
 
 
         // north-west
@@ -212,14 +203,7 @@ void Boundary::movingTop(Lattice& lattice)
         =
         f[lattice.index(5,x,y)]
         -
-        0.5 *
-        (
-            f[lattice.index(2,x,y)]
-           -
-            f[lattice.index(1,x,y)]
-        )
-        -
-        rho*lidVelocity/6.0;
+        (1.0/6.0)*rho*lidVelocity;
 
     }
 
