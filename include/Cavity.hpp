@@ -5,6 +5,9 @@
 #include "Lattice.hpp"
 #include "Boundary.hpp"
 
+#include <vector>
+#include <string>
+
 
 class Cavity
 {
@@ -61,8 +64,22 @@ public:
     double velocityDifference();
 
 
-
     bool converged(double tolerance);
+
+
+
+    //=========================================
+    // Ghia benchmark export
+    //=========================================
+
+    void exportCenterVelocityProfile(
+        const std::string& filename
+    );
+
+
+    void exportVerticalVelocityProfile(
+        const std::string& filename
+    );
 
 
 
@@ -96,7 +113,6 @@ private:
     std::vector<double> oldUx;
 
     std::vector<double> oldUy;
-
 
 
 };
