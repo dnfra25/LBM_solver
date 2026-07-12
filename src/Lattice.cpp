@@ -255,10 +255,10 @@ void Lattice::computeMacroscopic()
 
 
 
-            double vel2 =
+   /*         double vel2 =
                 ux[id]*ux[id]
               +
-                uy[id]*uy[id];
+                uy[id]*uy[id];*/
 
 /*
             if(vel2 > 1.1)
