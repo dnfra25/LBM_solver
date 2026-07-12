@@ -154,7 +154,6 @@ void Boundary::bounceBackRight(Lattice& lattice)
 }
 
 
-
 void Boundary::movingTop(Lattice& lattice)
 {
 
@@ -173,37 +172,47 @@ void Boundary::movingTop(Lattice& lattice)
             + f[lattice.index(2,x,y)]
             + 2.0 *
             (
-                f[lattice.index(3,x,y)]
-              + f[lattice.index(6,x,y)]
-              + f[lattice.index(7,x,y)]
+              f[lattice.index(4,x,y)]
+            + f[lattice.index(6,x,y)]
+            + f[lattice.index(8,x,y)]
             );
 
 
-        // Zou-He moving lid
-        // ux = U_lid
-        // uy = 0
-
-
         // north
-        f[lattice.index(4,x,y)]
+        f[lattice.index(3,x,y)]
         =
-        f[lattice.index(3,x,y)];
+        f[lattice.index(4,x,y)];
 
 
         // north-east
-        f[lattice.index(8,x,y)]
+        f[lattice.index(5,x,y)]
         =
-        f[lattice.index(7,x,y)]
+        f[lattice.index(6,x,y)]
         +
-        (1.0/6.0)*rho*lidVelocity;
+        0.5 *
+        (
+            f[lattice.index(2,x,y)]
+          -
+            f[lattice.index(1,x,y)]
+        )
+        +
+        rho*lidVelocity/6.0;
+
 
 
         // north-west
-        f[lattice.index(6,x,y)]
+        f[lattice.index(7,x,y)]
         =
-        f[lattice.index(5,x,y)]
+        f[lattice.index(8,x,y)]
         -
-        (1.0/6.0)*rho*lidVelocity;
+        0.5 *
+        (
+            f[lattice.index(2,x,y)]
+          -
+            f[lattice.index(1,x,y)]
+        )
+        -
+        rho*lidVelocity/6.0;
 
     }
 
