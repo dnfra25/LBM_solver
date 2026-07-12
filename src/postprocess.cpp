@@ -5,10 +5,9 @@
 #include <map>
 #include <string>
 #include <iomanip>
+#include <cmath>
+#include <limits>
 
-/*
-Questo script è pensato per mettere insieme gli output del main di LBM così da creare un CSV nella struttura simile a Ghia.
-*/    
 
 struct Profile
 {
@@ -38,6 +37,7 @@ Profile readProfile(const std::string& filename)
         return profile;
     }
 
+
     std::string line;
 
 
@@ -50,7 +50,6 @@ Profile readProfile(const std::string& filename)
 
         if(line[0]=='#')
             continue;
-
 
 
         std::stringstream ss(line);
@@ -75,15 +74,45 @@ Profile readProfile(const std::string& filename)
 
 
 //==================================================
+// Find nearest grid point
+//==================================================
+
+int nearestIndex(const Profile& p,double target)
+{
+
+    double minDist =
+        std::numeric_limits<double>::max();
+
+    int index = -1;
+
+
+    for(size_t i=0;i<p.coord.size();i++)
+    {
+
+        double dist =
+            std::abs(p.coord[i]-target);
+
+
+        if(dist < minDist)
+        {
+            minDist = dist;
+            index = static_cast<int>(i);
+        }
+
+    }
+
+
+    return index;
+}
+
+
+
+//==================================================
 // Main
 //==================================================
 
 int main()
 {
-
-    //--------------------------------------------------
-    // Reynolds cases
-    //--------------------------------------------------
 
     const std::vector<int> Reynolds =
     {
@@ -98,106 +127,87 @@ int main()
 
 
 
-    //--------------------------------------------------
-    // Ghia grid points
-    //--------------------------------------------------
-
+    // punti Ghia (129 nodi)
     const std::vector<int> gridPts =
     {
         129,
+        126,
         125,
         124,
         123,
-        122,
-        117,
-        111,
-        104,
+        110,
+        95,
+        80,
         65,
+        59,
         31,
-        30,
-        21,
-        13,
-        11,
+        23,
+        14,
         10,
         9,
+        8,
         1
     };
 
 
 
-    //--------------------------------------------------
-    // Read profiles
-    //--------------------------------------------------
-
     std::map<int,Profile> Ux;
-
     std::map<int,Profile> Uy;
 
 
 
-    for(const int Re : Reynolds)
+    for(int Re : Reynolds)
     {
 
-        const std::string uxFile =
-            "Ux_Re"
-            +
-            std::to_string(Re)
-            +
-            ".dat";
+        Ux[Re] =
+            readProfile(
+                "Ux_Re"
+                +
+                std::to_string(Re)
+                +
+                ".dat"
+            );
 
 
-        const std::string uyFile =
-            "Uy_Re"
-            +
-            std::to_string(Re)
-            +
-            ".dat";
-
-
-
-        Ux[Re] = readProfile(uxFile);
-
-        Uy[Re] = readProfile(uyFile);
+        Uy[Re] =
+            readProfile(
+                "Uy_Re"
+                +
+                std::to_string(Re)
+                +
+                ".dat"
+            );
 
     }
 
 
 
-    //--------------------------------------------------
-    // Write Ux table
-    //--------------------------------------------------
+//==================================================
+// Ux centerline
+// Ghia: u(y) con x=0.5
+//==================================================
+
 
     std::ofstream fileUx("ghia_u.csv");
 
 
-
     fileUx
-        << "gridpt,x";
+        << "gridpt,y";
 
 
-    for(const int Re : Reynolds)
-    {
-        fileUx
-            << ",Re="
-            << Re;
-    }
+    for(int Re:Reynolds)
+        fileUx << ",Re=" << Re;
 
 
     fileUx << "\n";
 
 
 
-    for(const int gp : gridPts)
+    for(int gp:gridPts)
     {
 
-        const std::size_t index =
-            static_cast<std::size_t>(gp - 1);
-
-
-
-        const double x =
-            static_cast<double>(index)/128.0;
-
+        double y =
+            static_cast<double>(gp-1)/128.0;
 
 
         fileUx
@@ -205,19 +215,25 @@ int main()
             << ","
             << std::fixed
             << std::setprecision(6)
-            << x;
+            << y;
 
 
-
-        for(const int Re : Reynolds)
+        for(int Re:Reynolds)
         {
 
-            if(index < Ux[Re].value.size())
+            int id =
+                nearestIndex(
+                    Ux[Re],
+                    y
+                );
+
+
+            if(id>=0)
             {
                 fileUx
                     << ","
                     << std::scientific
-                    << Ux[Re].value[index];
+                    << Ux[Re].value[id];
             }
             else
             {
@@ -232,47 +248,38 @@ int main()
     }
 
 
-
     fileUx.close();
 
 
 
 
-    //--------------------------------------------------
-    // Write Uy table
-    //--------------------------------------------------
+
+//==================================================
+// Uy centerline
+// Ghia: v(x) con y=0.5
+//==================================================
+
 
     std::ofstream fileUy("ghia_v.csv");
 
 
-
     fileUy
-        << "gridpt,y";
+        << "gridpt,x";
 
 
-    for(const int Re : Reynolds)
-    {
-        fileUy
-            << ",Re="
-            << Re;
-    }
+    for(int Re:Reynolds)
+        fileUy << ",Re=" << Re;
 
 
     fileUy << "\n";
 
 
 
-    for(const int gp : gridPts)
+    for(int gp:gridPts)
     {
 
-        const std::size_t index =
-            static_cast<std::size_t>(gp - 1);
-
-
-
-        const double y =
-            static_cast<double>(index)/128.0;
-
+        double x =
+            static_cast<double>(gp-1)/128.0;
 
 
         fileUy
@@ -280,19 +287,27 @@ int main()
             << ","
             << std::fixed
             << std::setprecision(6)
-            << y;
+            << x;
 
 
 
-        for(const int Re : Reynolds)
+        for(int Re:Reynolds)
         {
 
-            if(index < Uy[Re].value.size())
+
+            int id =
+                nearestIndex(
+                    Uy[Re],
+                    x
+                );
+
+
+            if(id>=0)
             {
                 fileUy
                     << ","
                     << std::scientific
-                    << Uy[Re].value[index];
+                    << Uy[Re].value[id];
             }
             else
             {
@@ -307,7 +322,6 @@ int main()
     }
 
 
-
     fileUy.close();
 
 
@@ -315,10 +329,10 @@ int main()
     std::cout
         << "\nPostprocess completed\n"
         << "Generated:\n"
-        << "  ghia_u.csv\n"
-        << "  ghia_v.csv\n";
-
+        << " ghia_u.csv\n"
+        << " ghia_v.csv\n";
 
 
     return 0;
+
 }
