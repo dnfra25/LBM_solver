@@ -453,8 +453,8 @@ void Lattice::collision()
                     +
                     f_minus_new;
 
-                             double test =
-    f_post[index(q,x,y)];
+                            /* double test =
+    f_post[index(q,x,y)];*/
 
 /*if(std::abs(test)>1.0 || !std::isfinite(test))
 {
