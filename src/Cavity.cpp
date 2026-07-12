@@ -10,9 +10,8 @@
 #endif
 
 
-
 //==================================================
-// Constructor
+// Constructor: gestisco la cavità FISICAMENTE con una classe
 //==================================================
 
 Cavity::Cavity(int nx_,
@@ -25,12 +24,9 @@ ny(ny_),
 Re(Reynolds_),
 U_lid(lidVelocity_),
 
-
 viscosity(
     U_lid * (nx_ - 1) / Re
 ),
-
-// viscosity(1.0 / Re),
 
 
 omega_p(
@@ -45,7 +41,7 @@ omega_p(
 
 
 // TRT omega_minus
-// Lambda = 3/16
+// Lambda = 3/16 -> valore standard
 omega_m(
     1.0 /
     (
@@ -62,7 +58,6 @@ omega_m(
 ),
 
 
-
 lattice(
     nx_,
     ny_,
@@ -70,7 +65,6 @@ lattice(
     omega_m,
     1.0
 ),
-
 
 boundary(
     nx_,
@@ -109,7 +103,6 @@ std::cout
         0.0
     );
 
-
     oldUy.resize(
         nx*ny,
         0.0
@@ -117,10 +110,8 @@ std::cout
 
 }
 
-
-
 //==================================================
-// Initialization
+// Inizializzo un oggetto cavità
 //==================================================
 
 void Cavity::initialize()
@@ -128,64 +119,43 @@ void Cavity::initialize()
 
     lattice.initialize();
 
-
     std::fill(
         oldUx.begin(),
         oldUx.end(),
         0.0
     );
 
-
     std::fill(
         oldUy.begin(),
         oldUy.end(),
         0.0
     );
-
 }
 
 
-
 //==================================================
-// One simulation step
+// Step standard per un test del modello
 //==================================================
 
 void Cavity::step()
 {
-
+// FASI IN SEQUENZA per il loro significato sifico
     lattice.computeMacroscopic();
-
-
     lattice.computeEquilibrium();
-
-
     lattice.collision();
-
-
     lattice.streaming();
-
-
     boundary.apply(lattice);
-
-
     lattice.computeMacroscopic();
-
 }
 
-
-
 //==================================================
-// Apply boundary only
+// Applico le condizioni fisiche al contorno: quelle della cavità
 //==================================================
 
 void Cavity::applyBoundary()
 {
-
     boundary.apply(lattice);
-
 }
-
-
 
 //==================================================
 // Access lattice
@@ -198,20 +168,14 @@ Lattice& Cavity::getLattice()
 
 }
 
-
-
 //==================================================
 // Velocity difference
 //==================================================
 
 double Cavity::velocityDifference()
 {
-
     double num = 0.0;
-
     double den = 0.0;
-
-
 
 #pragma omp parallel for collapse(2) reduction(+:num,den)
     for(int x=0;x<nx;x++)
@@ -221,60 +185,39 @@ double Cavity::velocityDifference()
 
             int id =
                 x*ny+y;
-
-
-
             double ux =
                 lattice.getUx(x,y);
-
-
             double uy =
                 lattice.getUy(x,y);
-
-
             double dux =
                 ux-oldUx[id];
-
-
             double duy =
                 uy-oldUy[id];
-
-
 
             num +=
                 dux*dux
                 +
                 duy*duy;
 
-
-
             den +=
                 ux*ux
                 +
                 uy*uy;
 
-
-
-            oldUx[id]=ux;
-
+           oldUx[id]=ux;
             oldUy[id]=uy;
-
         }
     }
-
-
 
     return
         std::sqrt(
             num/(den+1e-30)
         );
-
 }
 
 
-
 //==================================================
-// Convergence test
+// Convergence test -> Mi serve per controllare che l'errore di approx non esploda
 //==================================================
 
 bool Cavity::converged(double tolerance)
@@ -283,18 +226,14 @@ bool Cavity::converged(double tolerance)
     double error =
         velocityDifference();
 
-
     return
         std::isfinite(error)
         &&
         error < tolerance;
-
 }
 
-
-
 //==================================================
-// Write horizontal centerline Ux
+// Focus su horizontal centerline Ux -> come da grafico Ghia
 //==================================================
 
 void Cavity::writeCenterlineUx(
@@ -310,12 +249,9 @@ void Cavity::writeCenterlineUx(
     int y =
         (ny-1)/2;
 
-
-
     file
         << std::scientific
         << std::setprecision(12);
-
 
 
     for(int x=0;x<nx;x++)
@@ -326,8 +262,6 @@ void Cavity::writeCenterlineUx(
             /
             static_cast<double>(nx-1);
 
-
-
         file
             << X
             << " "
@@ -336,47 +270,32 @@ void Cavity::writeCenterlineUx(
 
     }
 
-
-    file.close();
-
+   file.close();
 }
 
 
-
 //==================================================
-// Write vertical centerline Uy
+// Focus su vertical centerline Uy -> come da grafico Ghia 
 //==================================================
 
 void Cavity::writeCenterlineUy(
         const std::string& filename)
 {
-
     std::ofstream file(filename);
-
-
     file << "# y uy\n";
-
-
     int x =
         (nx-1)/2;
-
-
 
     file
         << std::scientific
         << std::setprecision(12);
 
-
-
     for(int y=0;y<ny;y++)
     {
-
         double Y =
             static_cast<double>(y)
             /
             static_cast<double>(ny-1);
-
-
 
         file
             << Y
@@ -385,8 +304,5 @@ void Cavity::writeCenterlineUy(
             << "\n";
 
     }
-
-
     file.close();
-
 }
