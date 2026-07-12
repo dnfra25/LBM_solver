@@ -113,6 +113,7 @@ private:
 
     std::vector<double> oldUy;
 
+    static double computeOmegaM(double omega_p);
 
 };
 
