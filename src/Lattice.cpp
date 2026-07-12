@@ -450,31 +450,25 @@ void Lattice::streaming()
 
 
 
-                if(xs>=0 &&
-                   xs<nx &&
-                   ys>=0 &&
-                   ys<ny)
-                {
+                if(xs >=0 &&
+   xs<nx &&
+   ys>=0 &&
+   ys<ny)
+{
 
-                    f_new[index(q,x,y)]
-                    =
-                    f_post[index(q,xs,ys)];
+    f_new[index(q,x,y)]
+    =
+    f_post[index(q,xs,ys)];
 
-                }
-                else
-                {
+}
+else
+{
 
-                    /*
-                       Mantiene la popolazione
-                       che sarà corretta
-                       dalla boundary.
-                    */
+    f_new[index(q,x,y)]
+    =
+    f[index(q,x,y)];
 
-                    f_new[index(q,x,y)]
-                    =
-                    f[index(q,x,y)];
-
-                }
+}
 
 
             }
