@@ -3,54 +3,53 @@
 
 #include "Lattice.hpp"
 
-
 class Boundary
 {
 
 public:
 
-    //=========================================
-    // Constructor
-    //=========================================
-
-    Boundary(int nx,
-             int ny,
-             double lidVelocity);
+```
+Boundary(int nx,
+         int ny,
+         double lidVelocity);
 
 
-    //=========================================
-    // Apply all boundary conditions
-    //=========================================
-
-    void apply(Lattice& lattice);
-
-
+void apply(Lattice& lattice);
+```
 
 private:
 
-    int nx;
-    int ny;
+```
+int nx;
+int ny;
+
+double lidVelocity;
 
 
-    // velocity of moving lid
+// walls
 
-    double lidVelocity;
+void bounceBackBottom(Lattice& lattice);
 
+void bounceBackLeft(Lattice& lattice);
 
-
-    //=========================================
-    // Boundary conditions
-    //=========================================
-
-    void bounceBackBottom(Lattice& lattice);
-
-    void bounceBackLeft(Lattice& lattice);
-
-    void bounceBackRight(Lattice& lattice);
+void bounceBackRight(Lattice& lattice);
 
 
-    void movingTop(Lattice& lattice);
+// moving lid
 
+void movingTop(Lattice& lattice);
+
+
+// corners
+
+void bottomLeftCorner(Lattice& lattice);
+
+void bottomRightCorner(Lattice& lattice);
+
+void topLeftCorner(Lattice& lattice);
+
+void topRightCorner(Lattice& lattice);
+```
 
 };
 
