@@ -155,48 +155,17 @@ void Boundary::bounceBackRight(Lattice& lattice)
 
 
 
-//==================================================
-// Moving top wall - Zou He velocity BC
-//==================================================
-//==================================================
-// Moving top wall - Zou He velocity BC
-//==================================================
-//==================================================
-// Moving top wall - Zou He velocity BC
-//==================================================
 void Boundary::movingTop(Lattice& lattice)
 {
 
     auto& f = lattice.distributions();
 
-    int y = ny - 1;
+    int y = ny-1;
 
 
     #pragma omp parallel for
-    for(int x = 1; x < nx-1; ++x)
+    for(int x=1; x<nx-1; ++x)
     {
-
-        /*
-            D2Q9 ordering used in Lattice.cpp:
-
-              5 = ( 1, 1)
-              6 = (-1,-1)
-              7 = (-1, 1)
-              8 = ( 1,-1)
-
-            Top wall:
-            unknown populations after streaming:
-
-              q=4  ( 0,-1)
-              q=6  (-1,-1)
-              q=8  ( 1,-1)
-
-            Imposed velocity:
-
-              ux = lidVelocity
-              uy = 0
-        */
-
 
         double rho =
               f[lattice.index(0,x,y)]
@@ -204,46 +173,45 @@ void Boundary::movingTop(Lattice& lattice)
             + f[lattice.index(2,x,y)]
             + 2.0 *
             (
-                f[lattice.index(3,x,y)]
-              + f[lattice.index(5,x,y)]
-              + f[lattice.index(7,x,y)]
+              f[lattice.index(3,x,y)]
+            + f[lattice.index(5,x,y)]
+            + f[lattice.index(7,x,y)]
             );
 
 
-        // q=4 opposite of q=3
         f[lattice.index(4,x,y)]
         =
-        f[lattice.index(3,x,y)];
-
-
-        // q=6 opposite of q=5
-        f[lattice.index(6,x,y)]
-        =
-        f[lattice.index(5,x,y)]
-        +
-        0.5 *
-        (
-            f[lattice.index(1,x,y)]
-            -
-            f[lattice.index(2,x,y)]
-        )
+        f[lattice.index(3,x,y)]
         -
-        rho * lidVelocity / 6.0;
+        (2.0/3.0)*rho*0.0;
 
 
-        // q=8 opposite of q=7
         f[lattice.index(8,x,y)]
         =
         f[lattice.index(7,x,y)]
         +
-        0.5 *
+        0.5*
         (
-            f[lattice.index(2,x,y)]
-            -
-            f[lattice.index(1,x,y)]
+          f[lattice.index(2,x,y)]
+          -
+          f[lattice.index(1,x,y)]
+        )
+        -
+        rho*lidVelocity/6.0;
+
+
+        f[lattice.index(6,x,y)]
+        =
+        f[lattice.index(5,x,y)]
+        +
+        0.5*
+        (
+          f[lattice.index(1,x,y)]
+          -
+          f[lattice.index(2,x,y)]
         )
         +
-        rho * lidVelocity / 6.0;
+        rho*lidVelocity/6.0;
 
     }
 
