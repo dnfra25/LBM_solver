@@ -313,10 +313,9 @@ void Lattice::collision()
                 int qb = opposite[q];
 
 
-                // process each pair only once
+                // evita di processare due volte la stessa coppia
                 if(q > qb)
                     continue;
-
 
 
                 double fq =
@@ -324,7 +323,6 @@ void Lattice::collision()
 
                 double fqb =
                     f[index(qb,x,y)];
-
 
 
                 double feq =
@@ -335,58 +333,71 @@ void Lattice::collision()
 
 
 
-                //----------------------------------
+                //--------------------------------------
                 // symmetric part
-                //----------------------------------
+                //--------------------------------------
 
                 double fp =
                     0.5*(fq + fqb);
 
-                double fp_eq =
+
+                double feqp =
                     0.5*(feq + feqb);
 
 
 
-                //----------------------------------
+                //--------------------------------------
                 // antisymmetric part
-                //----------------------------------
+                //--------------------------------------
 
                 double fm =
                     0.5*(fq - fqb);
 
-                double fm_eq =
+
+                double feqm =
                     0.5*(feq - feqb);
 
 
 
-                //----------------------------------
+                //--------------------------------------
                 // TRT relaxation
-                //----------------------------------
+                //--------------------------------------
 
                 double fp_new =
                     fp
                     -
-                    omega_p*(fp - fp_eq);
+                    omega_p*(fp-feqp);
 
 
 
                 double fm_new =
                     fm
                     -
-                    omega_m*(fm - fm_eq);
+                    omega_m*(fm-feqm);
 
 
 
-                //----------------------------------
-                // reconstruct both directions
-                //----------------------------------
+                //--------------------------------------
+                // reconstruction
+                //--------------------------------------
 
-                f_post[index(q,x,y)] =
+                double fq_new =
                     fp_new + fm_new;
 
 
-                f_post[index(qb,x,y)] =
+                double fqb_new =
                     fp_new - fm_new;
+
+
+
+                f_post[index(q,x,y)]
+                    =
+                    fq_new;
+
+
+                f_post[index(qb,x,y)]
+                    =
+                    fqb_new;
 
             }
 
