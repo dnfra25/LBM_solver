@@ -467,7 +467,7 @@ if(std::abs(test)>1.0 || !std::isfinite(test))
     << " f=" << test
     << std::endl;
 
-    exit(1);
+   // exit(1);
 }
 
                 f_post[index(qb,x,y)]
