@@ -308,7 +308,9 @@ void Cavity::writeCenterlineUx(
 
 
         double ux =
-            lattice.getUx(x,y);
+        lattice.getUx(x,y)
+          /
+            U_lid;
 
 
 
@@ -363,8 +365,10 @@ void Cavity::writeCenterlineUy(
 
 
 
-        double uy =
-            lattice.getUy(x,y);
+       double uy =
+    lattice.getUy(x,y)
+    /
+    U_lid;
 
 
 
