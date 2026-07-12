@@ -233,7 +233,7 @@ bool Cavity::converged(double tolerance)
 }
 
 //==================================================
-// Focus su horizontal centerline Ux -> come da grafico Ghia
+// Focus su vertical centerline Ux -> profilo u(y) di Ghia
 //==================================================
 
 void Cavity::writeCenterlineUx(
@@ -243,18 +243,65 @@ void Cavity::writeCenterlineUx(
     std::ofstream file(filename);
 
 
-    file << "# x ux\n";
+    file << "# y ux\n";
 
 
-    int y =
-        (ny-1)/2;
+    // linea verticale centrale x = 0.5
+    int x =
+        (nx-1)/2;
+
 
     file
         << std::scientific
         << std::setprecision(12);
 
 
-    for(int x=0;x<nx;x++)
+    for(int y=0; y<ny; y++)
+    {
+
+        double Y =
+            static_cast<double>(y)
+            /
+            static_cast<double>(ny-1);
+
+
+        file
+            << Y
+            << " "
+            << lattice.getUx(x,y)
+            << "\n";
+
+    }
+
+
+    file.close();
+}
+
+//==================================================
+// Focus su horizontal centerline Uy -> profilo v(x) di Ghia
+//==================================================
+
+void Cavity::writeCenterlineUy(
+        const std::string& filename)
+{
+
+    std::ofstream file(filename);
+
+
+    file << "# x uy\n";
+
+
+    // linea orizzontale centrale y = 0.5
+    int y =
+        (ny-1)/2;
+
+
+    file
+        << std::scientific
+        << std::setprecision(12);
+
+
+    for(int x=0; x<nx; x++)
     {
 
         double X =
@@ -262,47 +309,15 @@ void Cavity::writeCenterlineUx(
             /
             static_cast<double>(nx-1);
 
+
         file
             << X
-            << " "
-            << lattice.getUx(x,y)
-            << "\n";
-
-    }
-
-   file.close();
-}
-
-
-//==================================================
-// Focus su vertical centerline Uy -> come da grafico Ghia 
-//==================================================
-
-void Cavity::writeCenterlineUy(
-        const std::string& filename)
-{
-    std::ofstream file(filename);
-    file << "# y uy\n";
-    int x =
-        (nx-1)/2;
-
-    file
-        << std::scientific
-        << std::setprecision(12);
-
-    for(int y=0;y<ny;y++)
-    {
-        double Y =
-            static_cast<double>(y)
-            /
-            static_cast<double>(ny-1);
-
-        file
-            << Y
             << " "
             << lattice.getUy(x,y)
             << "\n";
 
     }
+
+
     file.close();
 }
