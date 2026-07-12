@@ -26,14 +26,11 @@ Re(Reynolds_),
 U_lid(lidVelocity_),
 
 
-/*viscosity(
+viscosity(
     U_lid * (nx_ - 1) / Re
-),*/
+),
+
 // viscosity(1.0 / Re),
-
-double L = nx - 1.0;
-
-viscosity = U_lid * L / Re;
 
 
 omega_p(
