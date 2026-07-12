@@ -166,16 +166,16 @@ void Boundary::movingTop(Lattice& lattice)
     for(int x=1; x<nx-1; ++x)
     {
 
-        double rho =
-              f[lattice.index(0,x,y)]
-            + f[lattice.index(1,x,y)]
-            + f[lattice.index(2,x,y)]
-            + 2.0 *
-            (
-              f[lattice.index(3,x,y)]
-            + f[lattice.index(5,x,y)]
-            + f[lattice.index(7,x,y)]
-            );
+       double rho =
+      f[lattice.index(0,x,y)]
+    + f[lattice.index(1,x,y)]
+    + f[lattice.index(2,x,y)]
+    + 2.0 *
+    (
+      f[lattice.index(4,x,y)]
+    + f[lattice.index(6,x,y)]
+    + f[lattice.index(8,x,y)]
+    );
 
 
         // N
