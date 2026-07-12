@@ -1,11 +1,10 @@
 #include "Cavity.hpp"
 
 #include <iostream>
-#include <fstream>
 #include <vector>
 #include <string>
-#include <iomanip>
 #include <chrono>
+#include <iomanip>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -27,9 +26,13 @@ struct TestCase
 
 
 
+
+//==================================================
+// Main
+//==================================================
+
 int main()
 {
-
 
 #ifdef _OPENMP
 
@@ -42,9 +45,9 @@ int main()
 
 
 
-    //----------------------------------------------
-    // Ghia benchmark test cases
-    //----------------------------------------------
+    //------------------------------------------------
+    // Ghia benchmark cases
+    //------------------------------------------------
 
     std::vector<TestCase> tests =
     {
@@ -115,32 +118,29 @@ int main()
 
 
 
-
-    //----------------------------------------------
+    //------------------------------------------------
     // Simulation parameters
-    //----------------------------------------------
+    //------------------------------------------------
 
-    const int maxIterations = 100000;
-
-    const double tolerance = 1e-8;
-
+    const int maxIterations =
+        50000;
 
 
-
-    //----------------------------------------------
-    // Run simulations
-    //----------------------------------------------
-
-    int testNumber = 1;
+    const double tolerance =
+        1.0e-8;
 
 
+
+    //------------------------------------------------
+    // Run cases
+    //------------------------------------------------
 
     for(auto& test : tests)
     {
 
 
         std::cout
-            << "\n=====================\n";
+            << "\n=============================\n";
 
 
         std::cout
@@ -150,9 +150,11 @@ int main()
 
 
 
+        //------------------------------------------------
+        // Create cavity
+        //------------------------------------------------
 
-        Cavity cavity
-        (
+        Cavity cavity(
             test.nx,
             test.ny,
             test.Re,
@@ -161,89 +163,29 @@ int main()
 
 
 
-
-        //------------------------------------------
-        // Initialization
-        //------------------------------------------
-
         cavity.initialize();
 
 
 
-
-        //------------------------------------------
-        // Check top boundary
-        //------------------------------------------
-
-        cavity.applyBoundary();
-
-        cavity.getLattice()
-               .computeMacroscopic();
-
-
-
-        std::cout
-            << "Initial lid Ux = "
-            << cavity.getLattice()
-                    .getUx(
-                        test.nx/2,
-                        test.ny-1
-                    )
-            << "\n";
-
-
-
-
-        //------------------------------------------
-        // Reset
-        //------------------------------------------
-
-        cavity.initialize();
-
-
-
-
-        //------------------------------------------
-        // Convergence file
-        //------------------------------------------
-
-        std::string filename =
-            "convergence_Re"
-            +
-            std::to_string((int)test.Re)
-            +
-            ".dat";
-
-
-
-        std::ofstream file(filename);
-
-
-
-        file
-            << "# iteration error\n";
-
-
-
-
-        //------------------------------------------
-        // Timer
-        //------------------------------------------
+        //------------------------------------------------
+        // Time measurement
+        //------------------------------------------------
 
         auto start =
             std::chrono::high_resolution_clock::now();
 
 
 
+        //------------------------------------------------
+        // LBM loop
+        //------------------------------------------------
 
         int iteration;
 
 
+        double error = 1.0;
 
 
-        //------------------------------------------
-        // Main LBM loop
-        //------------------------------------------
 
         for(iteration=0;
             iteration<maxIterations;
@@ -255,22 +197,11 @@ int main()
 
 
 
-            if(iteration % 100 == 0 &&
-               iteration > 0)
+            if(iteration % 100 == 0)
             {
 
-
-                double error =
+                error =
                     cavity.velocityDifference();
-
-
-
-                file
-                    << iteration
-                    << " "
-                    << std::scientific
-                    << error
-                    << "\n";
 
 
 
@@ -278,9 +209,9 @@ int main()
                     << "it = "
                     << iteration
                     << " error = "
+                    << std::scientific
                     << error
                     << "\n";
-
 
 
 
@@ -302,6 +233,9 @@ int main()
 
 
 
+        //------------------------------------------------
+        // Timing
+        //------------------------------------------------
 
         auto end =
             std::chrono::high_resolution_clock::now();
@@ -315,51 +249,34 @@ int main()
 
 
 
+        //------------------------------------------------
+        // Output Ghia profiles
+        //------------------------------------------------
 
-        file.close();
+
+        std::string uxFile =
+            "Ux_" + test.name + ".dat";
 
 
-
-
-        //------------------------------------------
-        // Export Ghia profiles
-        //------------------------------------------
-
-        std::string ux_file =
-            "Ux_center_Re"
-            +
-            std::to_string((int)test.Re)
-            +
-            ".dat";
+        std::string uyFile =
+            "Uy_" + test.name + ".dat";
 
 
 
-        std::string uy_file =
-            "Uy_center_Re"
-            +
-            std::to_string((int)test.Re)
-            +
-            ".dat";
+        cavity.writeCenterlineUx(
+            uxFile
+        );
 
 
-
-        cavity.exportCenterVelocityProfile(
-            ux_file
+        cavity.writeCenterlineUy(
+            uyFile
         );
 
 
 
-        cavity.exportVerticalVelocityProfile(
-            uy_file
-        );
-
-
-
-
-
-        //------------------------------------------
+        //------------------------------------------------
         // Diagnostics
-        //------------------------------------------
+        //------------------------------------------------
 
         Lattice& lattice =
             cavity.getLattice();
@@ -375,42 +292,8 @@ int main()
 
 
 
-        double centerUx =
-            lattice.getUx(cx,cy);
-
-
-        double centerUy =
-            lattice.getUy(cx,cy);
-
-
-
-        double topUx =
-            lattice.getUx(
-                cx,
-                test.ny-2
-            );
-
-
-
-        double bottomUx =
-            lattice.getUx(
-                cx,
-                1
-            );
-
-
-
-
         std::cout
-            << "\nFinal result\n";
-
-
-
-        std::cout
-            << "Iterations: "
-            << iteration
-            << "\n";
-
+            << "\nFinal diagnostics\n";
 
 
         std::cout
@@ -420,30 +303,26 @@ int main()
 
         std::cout
             << "Center Ux = "
-            << centerUx
+            << lattice.getUx(cx,cy)
             << "\n";
-
 
 
         std::cout
             << "Center Uy = "
-            << centerUy
+            << lattice.getUy(cx,cy)
             << "\n";
-
 
 
         std::cout
             << "Top interior Ux = "
-            << topUx
+            << lattice.getUx(cx,test.ny-2)
             << "\n";
-
 
 
         std::cout
-            << "Bottom interior Ux = "
-            << bottomUx
+            << "Iterations = "
+            << iteration
             << "\n";
-
 
 
         std::cout
@@ -453,15 +332,28 @@ int main()
 
 
 
-        testNumber++;
+        std::cout
+            << "Written:\n";
+
+
+        std::cout
+            << "  "
+            << uxFile
+            << "\n";
+
+
+        std::cout
+            << "  "
+            << uyFile
+            << "\n";
+
 
     }
 
 
 
-
     std::cout
-        << "\nAll Ghia benchmark tests completed\n";
+        << "\nAll Ghia benchmark cases completed\n";
 
 
 
