@@ -142,7 +142,7 @@ int main()
             << "Initial lid Ux = "
             << cavity.getLattice().getUx(
                    test.nx/2,
-                   test.ny-1
+                   test.ny-2
                )
             << "\n";
 
