@@ -14,6 +14,7 @@ struct Profile
 };
 
 
+
 //==================================================
 // Read profile file
 //==================================================
@@ -60,17 +61,13 @@ Profile readProfile(const std::string& filename)
         double u;
 
 
-        ss >> x >> u;
-
-
-        profile.coord.push_back(x);
-
-        profile.value.push_back(u);
+        if(ss >> x >> u)
+        {
+            profile.coord.push_back(x);
+            profile.value.push_back(u);
+        }
 
     }
-
-
-    file.close();
 
 
     return profile;
@@ -89,7 +86,7 @@ int main()
     // Reynolds cases
     //--------------------------------------------------
 
-    std::vector<int> Reynolds =
+    const std::vector<int> Reynolds =
     {
         100,
         400,
@@ -106,7 +103,7 @@ int main()
     // Ghia grid points
     //--------------------------------------------------
 
-    std::vector<int> gridPts =
+    const std::vector<int> gridPts =
     {
         129,
         125,
@@ -130,7 +127,7 @@ int main()
 
 
     //--------------------------------------------------
-    // Read Ux and Uy profiles
+    // Read profiles
     //--------------------------------------------------
 
     std::map<int,Profile> Ux;
@@ -139,10 +136,10 @@ int main()
 
 
 
-    for(int Re : Reynolds)
+    for(const int Re : Reynolds)
     {
 
-        std::string uxFile =
+        const std::string uxFile =
             "Ux_Re"
             +
             std::to_string(Re)
@@ -150,7 +147,7 @@ int main()
             ".dat";
 
 
-        std::string uyFile =
+        const std::string uyFile =
             "Uy_Re"
             +
             std::to_string(Re)
@@ -179,7 +176,7 @@ int main()
         << "gridpt,x";
 
 
-    for(int Re : Reynolds)
+    for(const int Re : Reynolds)
     {
         fileUx
             << ",Re="
@@ -191,15 +188,16 @@ int main()
 
 
 
-    for(int gp : gridPts)
+    for(const int gp : gridPts)
     {
 
-        int index =
-            gp-1;
+        const std::size_t index =
+            static_cast<std::size_t>(gp - 1);
 
 
-        double x =
-            double(index)/128.0;
+
+        const double x =
+            static_cast<double>(index)/128.0;
 
 
 
@@ -212,10 +210,10 @@ int main()
 
 
 
-        for(int Re : Reynolds)
+        for(const int Re : Reynolds)
         {
 
-            if(Ux[Re].value.size() > index)
+            if(index < Ux[Re].value.size())
             {
                 fileUx
                     << ","
@@ -240,6 +238,7 @@ int main()
 
 
 
+
     //--------------------------------------------------
     // Write Uy table
     //--------------------------------------------------
@@ -252,7 +251,7 @@ int main()
         << "gridpt,y";
 
 
-    for(int Re : Reynolds)
+    for(const int Re : Reynolds)
     {
         fileUy
             << ",Re="
@@ -264,16 +263,16 @@ int main()
 
 
 
-    for(int gp : gridPts)
+    for(const int gp : gridPts)
     {
 
-        int index =
-            gp-1;
+        const std::size_t index =
+            static_cast<std::size_t>(gp - 1);
 
 
 
-        double y =
-            double(index)/128.0;
+        const double y =
+            static_cast<double>(index)/128.0;
 
 
 
@@ -286,10 +285,10 @@ int main()
 
 
 
-        for(int Re : Reynolds)
+        for(const int Re : Reynolds)
         {
 
-            if(Uy[Re].value.size() > index)
+            if(index < Uy[Re].value.size())
             {
                 fileUy
                     << ","
