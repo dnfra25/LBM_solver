@@ -260,7 +260,7 @@ void Lattice::computeMacroscopic()
               +
                 uy[id]*uy[id];
 
-
+/*
             if(vel2 > 1.1)
             {
 
@@ -279,7 +279,7 @@ void Lattice::computeMacroscopic()
                     << std::endl;
                 }
 
-            }
+            }*/
 
         }
     }
