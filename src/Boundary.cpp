@@ -158,53 +158,70 @@ void Boundary::bounceBackRight(Lattice& lattice)
 //==================================================
 // Moving top wall - Zou He velocity BC
 //==================================================
+//==================================================
+// Moving top wall - Zou He velocity BC
+//==================================================
 void Boundary::movingTop(Lattice& lattice)
 {
 
-    auto& f =
-        lattice.distributions();
+    auto& f = lattice.distributions();
+
+    int y = ny - 1;
 
 
-    int y =
-        ny-1;
-
-
-
-#pragma omp parallel for
-    for(int x=1;x<nx-1;x++)
+    #pragma omp parallel for
+    for(int x = 1; x < nx - 1; ++x)
     {
+
+        /*
+            Unknown populations at top wall:
+
+                q=4  (down)
+                q=6  (down-left)
+                q=7  (down-right)
+
+            Known populations:
+
+                q=0,1,2,3,5,8
+
+            Imposed velocity:
+
+                ux = lidVelocity
+                uy = 0
+        */
+
 
         double rho =
               f[lattice.index(0,x,y)]
             + f[lattice.index(1,x,y)]
             + f[lattice.index(2,x,y)]
-            +2.0*
+            + 2.0 *
             (
-              f[lattice.index(4,x,y)]
-             +f[lattice.index(6,x,y)]
-             +f[lattice.index(8,x,y)]
+                f[lattice.index(4,x,y)]
+              + f[lattice.index(6,x,y)]
+              + f[lattice.index(8,x,y)]
             );
 
 
-
+        // Normal component (bounce-back)
         f[lattice.index(3,x,y)]
         =
         f[lattice.index(4,x,y)];
 
 
-
+        // Diagonal populations
         f[lattice.index(5,x,y)]
         =
         f[lattice.index(6,x,y)]
         +
-        0.5*
+        0.5 *
         (
-        f[lattice.index(2,x,y)]
-        -
-        f[lattice.index(1,x,y)]
+            f[lattice.index(2,x,y)]
+            -
+            f[lattice.index(1,x,y)]
         )
         +
-        rho*lidVelocity/6.0;
+        rho * lidVelocity / 6.0;
 
 
 
@@ -212,14 +229,15 @@ void Boundary::movingTop(Lattice& lattice)
         =
         f[lattice.index(8,x,y)]
         +
-        0.5*
+        0.5 *
         (
-        f[lattice.index(1,x,y)]
-        -
-        f[lattice.index(2,x,y)]
+            f[lattice.index(1,x,y)]
+            -
+            f[lattice.index(2,x,y)]
         )
         -
-        rho*lidVelocity/6.0;
+        rho * lidVelocity / 6.0;
+
 
     }
 
