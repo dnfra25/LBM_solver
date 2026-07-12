@@ -20,37 +20,34 @@ BUILD_DIR = build
 
 
 # ==========================================
-# Solver sources
+# Cavity solver
 # ==========================================
 
-SOLVER_SOURCES = \
+CAVITY_SOURCES = \
 	$(SRC_DIR)/main.cpp \
 	$(SRC_DIR)/Lattice.cpp \
 	$(SRC_DIR)/Boundary.cpp \
 	$(SRC_DIR)/Cavity.cpp
 
 
+CAVITY_OBJECTS = \
+	$(CAVITY_SOURCES:%.cpp=$(BUILD_DIR)/%.o)
 
-SOLVER_OBJECTS = $(SOLVER_SOURCES:%.cpp=$(BUILD_DIR)/%.o)
 
-
-
-TARGET = cavity
+CAVITY_TARGET = cavity
 
 
 
 # ==========================================
-# Postprocess sources
+# Postprocess
 # ==========================================
 
-POSTPROCESS_SOURCE = \
+POSTPROCESS_SOURCES = \
 	$(SRC_DIR)/postprocess.cpp
 
 
-
-POSTPROCESS_OBJECT = \
-	$(BUILD_DIR)/src/postprocess.o
-
+POSTPROCESS_OBJECTS = \
+	$(POSTPROCESS_SOURCES:%.cpp=$(BUILD_DIR)/%.o)
 
 
 POSTPROCESS_TARGET = postprocess
@@ -58,35 +55,35 @@ POSTPROCESS_TARGET = postprocess
 
 
 # ==========================================
-# Default
+# Default: build both executables
 # ==========================================
 
-all: $(TARGET)
-
-
-
-# ==========================================
-# Solver linking
-# ==========================================
-
-$(TARGET): $(SOLVER_OBJECTS)
-
-	$(CXX) $(CXXFLAGS) $(SOLVER_OBJECTS) -o $@
+all: $(CAVITY_TARGET) $(POSTPROCESS_TARGET)
 
 
 
 # ==========================================
-# Postprocess linking
+# Link cavity
 # ==========================================
 
-$(POSTPROCESS_TARGET): $(POSTPROCESS_OBJECT)
+$(CAVITY_TARGET): $(CAVITY_OBJECTS)
 
-	$(CXX) $(CXXFLAGS) $(POSTPROCESS_OBJECT) -o $@
+	$(CXX) $(CXXFLAGS) $(CAVITY_OBJECTS) -o $@
 
 
 
 # ==========================================
-# Compilation rule
+# Link postprocess
+# ==========================================
+
+$(POSTPROCESS_TARGET): $(POSTPROCESS_OBJECTS)
+
+	$(CXX) $(CXXFLAGS) $(POSTPROCESS_OBJECTS) -o $@
+
+
+
+# ==========================================
+# Compile rule
 # ==========================================
 
 $(BUILD_DIR)/%.o: %.cpp
@@ -101,9 +98,9 @@ $(BUILD_DIR)/%.o: %.cpp
 # Run solver
 # ==========================================
 
-run: $(TARGET)
+run: $(CAVITY_TARGET)
 
-	./$(TARGET)
+	./$(CAVITY_TARGET)
 
 
 
@@ -125,7 +122,7 @@ clean:
 
 	rm -rf $(BUILD_DIR)
 
-	rm -f $(TARGET)
+	rm -f $(CAVITY_TARGET)
 
 	rm -f $(POSTPROCESS_TARGET)
 
