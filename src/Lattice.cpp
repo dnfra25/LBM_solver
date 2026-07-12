@@ -298,10 +298,6 @@ void Lattice::computeEquilibrium()
 // TRT collision
 //==================================================
 
-//==================================================
-// TRT collision step
-//==================================================
-
 void Lattice::collision()
 {
 
@@ -311,24 +307,13 @@ void Lattice::collision()
         for(int y = 0; y < ny; ++y)
         {
 
-            /*
-                Process only one population of each
-                opposite pair:
-
-                0 <-> 0
-                1 <-> 2
-                3 <-> 4
-                5 <-> 6
-                7 <-> 8
-            */
-
             for(int q = 0; q < Q; ++q)
             {
 
                 int qb = opposite[q];
 
 
-                // avoid processing the same pair twice
+                // process each pair only once
                 if(q > qb)
                     continue;
 
@@ -351,28 +336,26 @@ void Lattice::collision()
 
 
                 //----------------------------------
-                // Symmetric component
+                // symmetric part
                 //----------------------------------
 
-                double f_plus =
-                    0.5 * (fq + fqb);
+                double fp =
+                    0.5*(fq + fqb);
 
-
-                double feq_plus =
-                    0.5 * (feq + feqb);
+                double fp_eq =
+                    0.5*(feq + feqb);
 
 
 
                 //----------------------------------
-                // Antisymmetric component
+                // antisymmetric part
                 //----------------------------------
 
-                double f_minus =
-                    0.5 * (fq - fqb);
+                double fm =
+                    0.5*(fq - fqb);
 
-
-                double feq_minus =
-                    0.5 * (feq - feqb);
+                double fm_eq =
+                    0.5*(feq - feqb);
 
 
 
@@ -380,38 +363,30 @@ void Lattice::collision()
                 // TRT relaxation
                 //----------------------------------
 
-                double f_plus_post =
-                    f_plus
+                double fp_new =
+                    fp
                     -
-                    omega_p *
-                    (f_plus - feq_plus);
+                    omega_p*(fp - fp_eq);
 
 
 
-                double f_minus_post =
-                    f_minus
+                double fm_new =
+                    fm
                     -
-                    omega_m *
-                    (f_minus - feq_minus);
+                    omega_m*(fm - fm_eq);
 
 
 
                 //----------------------------------
-                // Reconstruction of both directions
+                // reconstruct both directions
                 //----------------------------------
 
-                f_post[index(q,x,y)]
-                    =
-                    f_plus_post
-                    +
-                    f_minus_post;
+                f_post[index(q,x,y)] =
+                    fp_new + fm_new;
 
 
-                f_post[index(qb,x,y)]
-                    =
-                    f_plus_post
-                    -
-                    f_minus_post;
+                f_post[index(qb,x,y)] =
+                    fp_new - fm_new;
 
             }
 
