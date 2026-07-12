@@ -12,32 +12,6 @@
 
 
 //==================================================
-// Compute TRT omega_m
-//==================================================
-
-double Cavity::computeOmegaM(double omega_p)
-{
-
-    double tau_p =
-        1.0 / omega_p;
-
-
-    double tau_m =
-        0.5
-        +
-        (3.0/16.0)
-        /
-        (tau_p - 0.5);
-
-
-    return
-        1.0 / tau_m;
-
-}
-
-
-
-//==================================================
 // Constructor
 //==================================================
 
@@ -60,9 +34,7 @@ omega_p(
     )
 ),
 
-omega_m(
-    computeOmegaM(omega_p)
-),
+omega_m(0.0),
 
 lattice(nx_,
         ny_,
@@ -75,6 +47,45 @@ boundary(nx_,
          U_lid)
 
 {
+
+    /*
+        TRT parameters
+
+        (tau_p - 0.5)(tau_m - 0.5)=Lambda
+
+        Lambda = 3/16
+    */
+
+
+    double tau_p =
+        1.0 / omega_p;
+
+
+
+    double tau_m =
+        0.5
+        +
+        (3.0/16.0)
+        /
+        (tau_p - 0.5);
+
+
+
+    omega_m =
+        1.0 / tau_m;
+
+
+    // IMPORTANT:
+    // update TRT antisymmetric relaxation
+    // after Lattice construction
+
+    lattice.setOmegaM(omega_m);
+
+
+
+    oldUx.resize(nx*ny,0.0);
+
+    oldUy.resize(nx*ny,0.0);
 
 }
 
