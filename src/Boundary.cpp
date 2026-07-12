@@ -171,47 +171,54 @@ void Boundary::movingTop(Lattice& lattice)
               f[lattice.index(0,x,y)]
             + f[lattice.index(1,x,y)]
             + f[lattice.index(2,x,y)]
-            + 2.0 *
+            +
+            2.0 *
             (
-              f[lattice.index(4,x,y)]
-            + f[lattice.index(7,x,y)]
-            + f[lattice.index(8,x,y)]
+                f[lattice.index(3,x,y)]
+              + f[lattice.index(6,x,y)]
+              + f[lattice.index(7,x,y)]
             );
 
 
-        // south
-        f[lattice.index(3,x,y)]
-        =
-        f[lattice.index(4,x,y)];
+        // Zou-He moving lid:
+        // ux = lidVelocity
+        // uy = 0
 
 
-        // southwest
-        f[lattice.index(6,x,y)]
+        // north
+        f[lattice.index(4,x,y)]
         =
+        f[lattice.index(3,x,y)];
+
+
+        // north-east
         f[lattice.index(8,x,y)]
-        +
-        0.5*
-        (
-          f[lattice.index(1,x,y)]
-          -
-          f[lattice.index(2,x,y)]
-        )
-        -
-        rho*lidVelocity/6.0;
-
-
-        // southeast
-        f[lattice.index(5,x,y)]
         =
         f[lattice.index(7,x,y)]
         +
-        0.5*
+        0.5 *
         (
-          f[lattice.index(2,x,y)]
-          -
-          f[lattice.index(1,x,y)]
+            f[lattice.index(2,x,y)]
+           -
+            f[lattice.index(1,x,y)]
         )
         +
+        rho*lidVelocity/6.0;
+
+
+
+        // north-west
+        f[lattice.index(6,x,y)]
+        =
+        f[lattice.index(5,x,y)]
+        -
+        0.5 *
+        (
+            f[lattice.index(2,x,y)]
+           -
+            f[lattice.index(1,x,y)]
+        )
+        -
         rho*lidVelocity/6.0;
 
     }
