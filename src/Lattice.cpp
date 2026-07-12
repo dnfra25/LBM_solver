@@ -261,7 +261,7 @@ void Lattice::computeMacroscopic()
                 uy[id]*uy[id];
 
 
-            if(vel2 > 0.1)
+            if(vel2 > 1.1)
             {
 
 #pragma omp critical
