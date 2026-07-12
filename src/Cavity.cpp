@@ -25,67 +25,69 @@ ny(ny_),
 Re(Reynolds_),
 U_lid(lidVelocity_),
 
-viscosity(U_lid * (nx_ - 1) / Re),
+
+viscosity(
+    U_lid * (nx_ - 1) / Re
+),
+
 
 omega_p(
     1.0 /
     (
-        0.5 + 3.0*viscosity
+        0.5
+        +
+        3.0 *
+        viscosity
     )
 ),
 
-omega_m(0.0),
 
-lattice(nx_,
-        ny_,
-        omega_p,
-        omega_m,
-        1.0),
-
-boundary(nx_,
-         ny_,
-         U_lid)
-
-{
-
-    /*
-        TRT parameters
-
-        (tau_p - 0.5)(tau_m - 0.5)=Lambda
-
-        Lambda = 3/16
-    */
-
-
-    double tau_p =
-        1.0 / omega_p;
-
-
-
-    double tau_m =
+// TRT omega_minus
+// Lambda = 3/16
+omega_m(
+    1.0 /
+    (
         0.5
         +
         (3.0/16.0)
         /
-        (tau_p - 0.5);
+        (
+            (1.0/omega_p)
+            -
+            0.5
+        )
+    )
+),
 
 
 
-    omega_m =
-        1.0 / tau_m;
+lattice(
+    nx_,
+    ny_,
+    omega_p,
+    omega_m,
+    1.0
+),
 
 
-    // IMPORTANT:
-    // update TRT antisymmetric relaxation
-    // after Lattice construction
+boundary(
+    nx_,
+    ny_,
+    U_lid
+)
 
-    lattice.setOmegaM(omega_m);
+{
+
+    oldUx.resize(
+        nx*ny,
+        0.0
+    );
 
 
-
-    oldUx.resize(nx*ny,0.0);
-
-    oldUy.resize(nx*ny,0.0);
+    oldUy.resize(
+        nx*ny,
+        0.0
+    );
 
 }
 
@@ -101,14 +103,18 @@ void Cavity::initialize()
     lattice.initialize();
 
 
-    std::fill(oldUx.begin(),
-              oldUx.end(),
-              0.0);
+    std::fill(
+        oldUx.begin(),
+        oldUx.end(),
+        0.0
+    );
 
 
-    std::fill(oldUy.begin(),
-              oldUy.end(),
-              0.0);
+    std::fill(
+        oldUy.begin(),
+        oldUy.end(),
+        0.0
+    );
 
 }
 
@@ -120,18 +126,6 @@ void Cavity::initialize()
 
 void Cavity::step()
 {
-
-    /*
-        LBM cycle:
-
-        1) macroscopic variables
-        2) equilibrium
-        3) TRT collision
-        4) streaming
-        5) boundary reconstruction
-        6) update macroscopic variables
-    */
-
 
     lattice.computeMacroscopic();
 
@@ -193,7 +187,7 @@ double Cavity::velocityDifference()
 
 
 
-    #pragma omp parallel for collapse(2) reduction(+:num,den)
+#pragma omp parallel for collapse(2) reduction(+:num,den)
     for(int x=0;x<nx;x++)
     {
         for(int y=0;y<ny;y++)
@@ -208,31 +202,30 @@ double Cavity::velocityDifference()
                 lattice.getUx(x,y);
 
 
-
             double uy =
                 lattice.getUy(x,y);
 
 
 
             double dux =
-                ux - oldUx[id];
+                ux-oldUx[id];
 
 
             double duy =
-                uy - oldUy[id];
+                uy-oldUy[id];
 
 
 
             num +=
                 dux*dux
-              +
+                +
                 duy*duy;
 
 
 
             den +=
                 ux*ux
-              +
+                +
                 uy*uy;
 
 
@@ -262,10 +255,14 @@ double Cavity::velocityDifference()
 bool Cavity::converged(double tolerance)
 {
 
+    double error =
+        velocityDifference();
+
+
     return
-        velocityDifference()
-        <
-        tolerance;
+        std::isfinite(error)
+        &&
+        error < tolerance;
 
 }
 
@@ -282,8 +279,7 @@ void Cavity::writeCenterlineUx(
     std::ofstream file(filename);
 
 
-    file
-        << "# x ux\n";
+    file << "# x ux\n";
 
 
     int y =
@@ -297,7 +293,7 @@ void Cavity::writeCenterlineUx(
 
 
 
-    for(int x=0; x<nx; x++)
+    for(int x=0;x<nx;x++)
     {
 
         double X =
@@ -307,17 +303,10 @@ void Cavity::writeCenterlineUx(
 
 
 
-        double ux =
-        lattice.getUx(x,y)
-          /
-            U_lid;
-
-
-
         file
             << X
             << " "
-            << ux
+            << lattice.getUx(x,y)
             << "\n";
 
     }
@@ -340,8 +329,7 @@ void Cavity::writeCenterlineUy(
     std::ofstream file(filename);
 
 
-    file
-        << "# y uy\n";
+    file << "# y uy\n";
 
 
     int x =
@@ -355,7 +343,7 @@ void Cavity::writeCenterlineUy(
 
 
 
-    for(int y=0; y<ny; y++)
+    for(int y=0;y<ny;y++)
     {
 
         double Y =
@@ -365,17 +353,10 @@ void Cavity::writeCenterlineUy(
 
 
 
-       double uy =
-    lattice.getUy(x,y)
-    /
-    U_lid;
-
-
-
         file
             << Y
             << " "
-            << uy
+            << lattice.getUy(x,y)
             << "\n";
 
     }
