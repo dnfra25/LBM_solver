@@ -6,13 +6,15 @@
 #include <string>
 #include <iomanip>
 
+/*
+Questo script è pensato per mettere insieme gli output del main di LBM così da creare un CSV nella struttura simile a Ghia.
+*/    
 
 struct Profile
 {
     std::vector<double> coord;
     std::vector<double> value;
 };
-
 
 
 //==================================================
@@ -22,7 +24,6 @@ struct Profile
 Profile readProfile(const std::string& filename)
 {
     Profile profile;
-
 
     std::ifstream file(filename);
 
@@ -36,8 +37,6 @@ Profile readProfile(const std::string& filename)
 
         return profile;
     }
-
-
 
     std::string line;
 
