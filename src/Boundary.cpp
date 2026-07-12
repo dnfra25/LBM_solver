@@ -207,7 +207,7 @@ void Boundary::movingTop(Lattice& lattice)
             f[lattice.index(1,x,y)]
         )
         +
-        rho*lidVelocity/6.0;
+        rho*lidVelocity/4.0;
 
 
         f[lattice.index(7,x,y)]
@@ -225,9 +225,9 @@ void Boundary::movingTop(Lattice& lattice)
 
 
         // correzione quantità di moto
-        f[lattice.index(5,x,y)] += rho*lidVelocity/6.0;
+        f[lattice.index(5,x,y)] += rho*lidVelocity/4.0;
 
-        f[lattice.index(7,x,y)] -= rho*lidVelocity/6.0;
+        f[lattice.index(7,x,y)] -= rho*lidVelocity/4.0;
 
 
     }
