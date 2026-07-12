@@ -427,31 +427,33 @@ void Lattice::streaming()
 {
 
     std::vector<double> f_new(
-        Q * nx * ny,
+        Q*nx*ny,
         0.0
     );
 
 
-    #pragma omp parallel for collapse(2)
-    for(int x=0; x<nx; ++x)
+#pragma omp parallel for collapse(2)
+    for(int x=0;x<nx;x++)
     {
-        for(int y=0; y<ny; ++y)
+        for(int y=0;y<ny;y++)
         {
 
-            for(int q=0; q<Q; ++q)
+
+            for(int q=0;q<Q;q++)
             {
 
                 int xs =
-                    x - c[q][0];
+                    x-c[q][0];
 
                 int ys =
-                    y - c[q][1];
+                    y-c[q][1];
 
 
-                if(xs >= 0 &&
-                   xs < nx &&
-                   ys >=0 &&
-                   ys < ny)
+
+                if(xs>=0 &&
+                   xs<nx &&
+                   ys>=0 &&
+                   ys<ny)
                 {
 
                     f_new[index(q,x,y)]
@@ -463,21 +465,24 @@ void Lattice::streaming()
                 {
 
                     /*
-                     lascia vuoto.
-                     La boundary ricostruisce
-                     le popolazioni mancanti.
+                       Mantiene la popolazione
+                       che sarà corretta
+                       dalla boundary.
                     */
 
                     f_new[index(q,x,y)]
                     =
-                    0.0;
+                    f[index(q,x,y)];
 
                 }
 
+
             }
+
 
         }
     }
+
 
 
     f.swap(f_new);
