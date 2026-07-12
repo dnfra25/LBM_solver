@@ -92,7 +92,7 @@ int main()
 
     const int maxIterations = 20000;
 
-    const double tolerance = 1e-6;
+    const double tolerance = 1e-8;
 
 
 
