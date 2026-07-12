@@ -425,6 +425,22 @@ void Lattice::collision()
                     +
                     f_minus_new;
 
+                              double val =
+                    f_post[index(q,x,y)];
+                
+                if(!std::isfinite(val))
+                {
+                    std::cout
+                    << "BAD f_post q="
+                    << q
+                    << " x="
+                    << x
+                    << " y="
+                    << y
+                    << std::endl;
+                
+                    exit(1);
+                }
 
 
                 f_post[index(qb,x,y)]
