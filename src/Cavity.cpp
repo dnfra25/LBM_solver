@@ -285,11 +285,9 @@ void Cavity::writeCenterlineUx(
 // Focus su horizontal centerline Uy -> Ghia
 // u_y(x,y=0.5)
 //==================================================
-
 void Cavity::writeCenterlineUy(
         const std::string& filename)
 {
-
     std::ofstream file(filename);
 
     file << "# x uy\n";
