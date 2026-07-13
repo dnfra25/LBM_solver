@@ -292,11 +292,9 @@ void Cavity::writeCenterlineUy(
 
     std::ofstream file(filename);
 
-
     file << "# x uy\n";
 
 
-    // centro della cavità in y
     int y =
         (ny-1)/2;
 
@@ -306,7 +304,7 @@ void Cavity::writeCenterlineUy(
         << std::setprecision(12);
 
 
-    for(int x=0; x<nx; x++)
+    for(int x=0;x<nx;x++)
     {
 
         double X =
@@ -325,5 +323,4 @@ void Cavity::writeCenterlineUy(
 
 
     file.close();
-
 }
